@@ -1,0 +1,14 @@
+{
+  "name": "mesos-node",
+  "version": "1.0.0",
+  "description": "Apache Mesos API",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "mesos"
+  ],
+  "author": "bcrusu",
+  "license": "ISC"
+}
