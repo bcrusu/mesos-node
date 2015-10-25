@@ -108,13 +108,13 @@ std::vector<T> DeserializeVector(ByteArrayCollection* collection) {
     if (info.Length() <= (i) || !info[i]->IsFunction()) {                      \
         return Nan::ThrowTypeError("Argument " #i " must be a function");      \
     }                                                                          \
-    Local<v8::Function> var = Local<v8::Function>::Cast(info[i]);
+	v8::Local<v8::Function> var = v8::Local<v8::Function>::Cast(info[i]);
 
 #define REQUIRE_ARGUMENT_OBJECT(i, var)                                        \
     if (info.Length() <= (i) || !info[i]->IsObject()) {                        \
         return Nan::ThrowTypeError("Argument " #i " must be an object");       \
     }                                                                          \
-    Local<v8::Object> var = Local<v8::Object>::Cast(info[i]);
+    v8::Local<v8::Object> var = v8::Local<v8::Object>::Cast(info[i]);
 
 
 #define REQUIRE_ARGUMENT_STRING(i, var)                                        \

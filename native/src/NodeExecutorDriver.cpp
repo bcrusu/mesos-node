@@ -3,12 +3,13 @@
 
 Nan::Persistent<v8::Function> NodeExecutorDriver::_constructor;
 
-NodeExecutorDriver::NodeExecutorDriver(v8::Object jsExecutor) :
+NodeExecutorDriver::NodeExecutorDriver(v8::Local<v8::Object> jsExecutor) :
 		_executor(new NodeExecutor(jsExecutor)), _executorDriver(new MesosExecutorDriver(_executor)) {
 }
 
 NodeExecutorDriver::~NodeExecutorDriver() {
-	//TODO: free _executorDriver
+	delete _executor;
+	delete _executorDriver;
 }
 
 void NodeExecutorDriver::Init(v8::Local<v8::Object> exports) {

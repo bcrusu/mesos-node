@@ -1,9 +1,13 @@
 #include "NodeScheduler.hpp"
 #include "Common.hpp"
 
-NodeScheduler::NodeScheduler(v8::Object jsScheduler) :
-		_jsScheduler(jsScheduler) {
+NodeScheduler::NodeScheduler(v8::Local<v8::Object> jsScheduler) {
 	//TODO: validate JS scheduler instance
+	_jsScheduler.Reset(jsScheduler);
+}
+
+NodeScheduler::~NodeScheduler() {
+	_jsScheduler.Reset();
 }
 
 void NodeScheduler::registered(SchedulerDriver* driver, const FrameworkID& frameworkId, const MasterInfo& masterInfo) {

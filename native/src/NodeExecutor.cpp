@@ -1,9 +1,13 @@
 #include "Common.hpp"
 #include "NodeExecutor.hpp"
 
-NodeExecutor::NodeExecutor(v8::Object jsExecutor) :
-		_jsExecutor(jsExecutor) {
+NodeExecutor::NodeExecutor(v8::Local<v8::Object> jsExecutor) {
 	//TODO: validate JS executor instance
+	_jsExecutor.Reset(jsExecutor);
+}
+
+NodeExecutor::~NodeExecutor() {
+	_jsExecutor.Reset();
 }
 
 void NodeExecutor::registered(ExecutorDriver* driver, const ExecutorInfo& executorInfo, const FrameworkInfo& frameworkInfo,

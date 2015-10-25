@@ -1,15 +1,22 @@
 #include "NodeSchedulerDriver.hpp"
-
 #include "Common.hpp"
 
-Nan::Persistent<v8::Function> NodeExecutorDriver::_constructor;
+Nan::Persistent<v8::Function> NodeSchedulerDriver::_constructor;
 
-NodeSchedulerDriver::NodeSchedulerDriver(v8::Object jsScheduler) :
-		_scheduler(new NodeScheduler(jsScheduler)), _schedulerDriver(new MesosSchedulerDriver(_scheduler)) {
+NodeSchedulerDriver::NodeSchedulerDriver(v8::Local<v8::Object> jsScheduler, const FrameworkInfo& framework, const std::string& master,
+		bool implicitAcknowlegements, const Credential& credential) :
+		_scheduler(new NodeScheduler(jsScheduler)), _schedulerDriver(
+				new MesosSchedulerDriver(_scheduler, framework, master, implicitAcknowlegements, credential)) {
+}
+
+NodeSchedulerDriver::NodeSchedulerDriver(v8::Local<v8::Object> jsScheduler, const FrameworkInfo& framework, const std::string& master,
+		bool implicitAcknowlegements) :
+		_scheduler(new NodeScheduler(jsScheduler)), _schedulerDriver(new MesosSchedulerDriver(_scheduler, framework, master, implicitAcknowlegements)) {
 }
 
 NodeSchedulerDriver::~NodeSchedulerDriver() {
-	//TODO: free _schedulerDriver
+	delete _scheduler;
+	delete _schedulerDriver;
 }
 
 void NodeSchedulerDriver::Init(v8::Local<v8::Object> exports) {
@@ -45,9 +52,13 @@ void NodeSchedulerDriver::New(const Nan::FunctionCallbackInfo<v8::Value>& info) 
 	REQUIRE_ARGUMENTS(1)
 
 	if (info.IsConstructCall()) {
-		REQUIRE_ARGUMENT_OBJECT(0, executor)
+		REQUIRE_ARGUMENT_OBJECT(0, scheduler)
 
-		NodeSchedulerDriver* driver = new NodeSchedulerDriver(executor);
+		//TODO: ctor parameters
+		FrameworkInfo frameworkInfo;
+		std::string master;
+
+		NodeSchedulerDriver* driver = new NodeSchedulerDriver(scheduler, frameworkInfo, master, true);
 		driver->Wrap(info.This());
 		info.GetReturnValue().Set(info.This());
 	} else {

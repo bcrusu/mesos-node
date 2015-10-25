@@ -2,6 +2,7 @@
 #define NODESCHEDULER_HPP_
 
 #include <mesos/scheduler.hpp>
+#include <nan.h>
 
 using namespace mesos;
 using std::string;
@@ -9,7 +10,8 @@ using std::vector;
 
 class NodeScheduler: public Scheduler {
 public:
-	NodeScheduler(v8::Object jsScheduler);
+	explicit NodeScheduler(v8::Local<v8::Object> jsScheduler);
+	~NodeScheduler();
 
 	virtual void registered(SchedulerDriver* driver, const FrameworkID& frameworkId, const MasterInfo& masterInfo);
 	virtual void reregistered(SchedulerDriver*, const MasterInfo& masterInfo);
@@ -23,7 +25,7 @@ public:
 	virtual void error(SchedulerDriver* driver, const string& message);
 
 private:
-	v8::Object _jsScheduler;
+	Nan::Persistent<v8::Object> _jsScheduler;
 };
 
 #endif /* NODESCHEDULER_HPP_ */

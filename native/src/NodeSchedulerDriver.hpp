@@ -6,16 +6,16 @@
 #include "NodeScheduler.hpp"
 
 using namespace mesos;
-using namespace v8;
 
 class NodeSchedulerDriver: public Nan::ObjectWrap {
 public:
 	static void Init(v8::Local<v8::Object> exports);
 
 private:
-	//TODO ctor: scheduler, frameworkInfo, masterAddress, implicitAcknowledgements, credential
-	//TODO ctor: scheduler, frameworkInfo, masterAddress, implicitAcknowledgements
-	explicit NodeSchedulerDriver(v8::Object jsScheduler);
+	explicit NodeSchedulerDriver(v8::Local<v8::Object> jsScheduler, const FrameworkInfo& framework, const std::string& master,
+			bool implicitAcknowlegements, const Credential& credential);
+	explicit NodeSchedulerDriver(v8::Local<v8::Object> jsScheduler, const FrameworkInfo& framework, const std::string& master,
+			bool implicitAcknowlegements);
 	~NodeSchedulerDriver();
 
 	static void New(const Nan::FunctionCallbackInfo<v8::Value>& info);
