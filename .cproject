@@ -78,7 +78,7 @@
 					</folderInfo>
 					<sourceEntries>
 						<entry excluding="lib|xx|mono" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src/native"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

@@ -2,9 +2,11 @@
 	"targets": [
 	{
 		"target_name": "mesosApi",
-		"sources": [ "src/hello.cpp", 
-			"src/hello2.cpp", 
-			"src/Common.cpp" ],
+		"sources": [ "src/native/Common.cpp", 
+			"src/native/NodeExecutor.cpp", 
+			"src/native/NodeExecutorDriver.cpp", 
+			"src/native/NodeScheduler.cpp", 
+			"src/native/NodeSchedulerDriver.cpp" ],
 		"include_dirs": [ "<!(node -e \"require('nan')\")",
 			"/home/bcrusu/work/github/mesos/build/3rdparty/libprocess/3rdparty/protobuf-2.5.0/src/",
 			"/home/bcrusu/work/github/mesos/include",
