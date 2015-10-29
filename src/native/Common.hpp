@@ -39,7 +39,7 @@ private:
 	ByteArrayCollection* _byteArrayCollection;
 };
 
-ByteArray StringToByteArray(const std::string& str);
+v8::Local<v8::Object> CreateBuffer(const std::string& data);
 
 void RaiseEvent(const v8::Persistent<v8::Object>& eventEmitter, const std::string& eventName, int argc, v8::Local<v8::Value> argv[]);
 
@@ -47,7 +47,8 @@ namespace protobuf {
 
 ScopedByteArray Serialize(const google::protobuf::Message& message);
 
-v8::Local<v8::Object> CreateJsObject(const google::protobuf::Message& message, const v8::Local<v8::Object>& protosBuilder, const std::string& protoClassName);
+v8::Local<v8::Object> CreateJsObject(const google::protobuf::Message& message, const v8::Local<v8::Object>& protosRoot,
+		const std::string& protoClassPath);
 
 template<class T>
 ScopedByteArrayCollection SerializeVector(const std::vector<T>& vector) {

@@ -2,7 +2,8 @@
 	"targets": [
 	{
 		"target_name": "mesosApi",
-		"sources": [ "src/native/Common.cpp", 
+		"sources": [ "src/native/Addon.cpp",
+			"src/native/Common.cpp", 
 			"src/native/NodeExecutor.cpp", 
 			"src/native/NodeExecutorDriver.cpp", 
 			"src/native/NodeScheduler.cpp", 
