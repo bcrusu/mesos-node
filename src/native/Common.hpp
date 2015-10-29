@@ -3,6 +3,7 @@
 
 #include <google/protobuf/message.h>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
+#include <nan.h>
 
 struct ByteArray {
 public:
@@ -40,9 +41,13 @@ private:
 
 ByteArray StringToByteArray(const std::string& str);
 
+void RaiseEvent(const v8::Persistent<v8::Object>& eventEmitter, const std::string& eventName, int argc, v8::Local<v8::Value> argv[]);
+
 namespace protobuf {
 
 ScopedByteArray Serialize(const google::protobuf::Message& message);
+
+v8::Local<v8::Object> CreateJsObject(const google::protobuf::Message& message, const v8::Local<v8::Object>& protosBuilder, const std::string& protoClassName);
 
 template<class T>
 ScopedByteArrayCollection SerializeVector(const std::vector<T>& vector) {
@@ -115,7 +120,6 @@ std::vector<T> DeserializeVector(ByteArrayCollection* collection) {
         return Nan::ThrowTypeError("Argument " #i " must be an object");       \
     }                                                                          \
     v8::Local<v8::Object> var = v8::Local<v8::Object>::Cast(info[i]);
-
 
 #define REQUIRE_ARGUMENT_STRING(i, var)                                        \
     if (info.Length() <= (i) || !info[i]->IsString()) {                        \

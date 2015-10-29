@@ -10,7 +10,7 @@ using namespace mesos;
 
 class NodeExecutor: public Executor {
 public:
-	explicit NodeExecutor(v8::Local<v8::Object> jsExecutor);
+	explicit NodeExecutor(v8::Local<v8::Object> jsExecutor, v8::Local<v8::Object> protosBuilder);
 	~NodeExecutor();
 
 	virtual void registered(ExecutorDriver* driver, const ExecutorInfo& executorInfo, const FrameworkInfo& frameworkInfo, const SlaveInfo& slaveInfo);
@@ -24,6 +24,7 @@ public:
 
 private:
 	Nan::Persistent<v8::Object> _jsExecutor;
+	Nan::Persistent<v8::Object> _protosBuilder;
 };
 
 #endif /* NODEEXECUTOR_HPP_ */

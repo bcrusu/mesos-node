@@ -1,13 +1,15 @@
 #include "Common.hpp"
 #include "NodeExecutor.hpp"
 
-NodeExecutor::NodeExecutor(v8::Local<v8::Object> jsExecutor) {
+NodeExecutor::NodeExecutor(v8::Local<v8::Object> jsExecutor, v8::Local<v8::Object> protosBuilder) {
 	//TODO: validate JS executor instance
 	_jsExecutor.Reset(jsExecutor);
+	_protosBuilder.Reset(protosBuilder);
 }
 
 NodeExecutor::~NodeExecutor() {
 	_jsExecutor.Reset();
+	_protosBuilder.Reset();
 }
 
 void NodeExecutor::registered(ExecutorDriver* driver, const ExecutorInfo& executorInfo, const FrameworkInfo& frameworkInfo,

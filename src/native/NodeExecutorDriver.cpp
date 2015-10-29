@@ -1,8 +1,6 @@
 #include "NodeExecutorDriver.hpp"
 #include "Common.hpp"
 
-Nan::Persistent<v8::Function> NodeExecutorDriver::_constructor;
-
 NodeExecutorDriver::NodeExecutorDriver(v8::Local<v8::Object> jsExecutor) :
 		_executor(new NodeExecutor(jsExecutor)), _executorDriver(new MesosExecutorDriver(_executor)) {
 }
@@ -51,29 +49,45 @@ void NodeExecutorDriver::New(const Nan::FunctionCallbackInfo<v8::Value>& info) {
 }
 
 void NodeExecutorDriver::Start(const Nan::FunctionCallbackInfo<v8::Value>& info) {
-	//TODO
+	REQUIRE_ARGUMENTS(0)
+	NodeExecutorDriver* driver = ObjectWrap::Unwrap<NodeExecutorDriver>(info.Holder());
+	driver->_executorDriver->start();
 }
 
 void NodeExecutorDriver::Stop(const Nan::FunctionCallbackInfo<v8::Value>& info) {
-	//TODO
+	REQUIRE_ARGUMENTS(0)
+	NodeExecutorDriver* driver = ObjectWrap::Unwrap<NodeExecutorDriver>(info.Holder());
+	driver->_executorDriver->stop();
 }
 
 void NodeExecutorDriver::Abort(const Nan::FunctionCallbackInfo<v8::Value>& info) {
-	//TODO
+	REQUIRE_ARGUMENTS(0)
+	NodeExecutorDriver* driver = ObjectWrap::Unwrap<NodeExecutorDriver>(info.Holder());
+	driver->_executorDriver->abort();
 }
 
 void NodeExecutorDriver::Join(const Nan::FunctionCallbackInfo<v8::Value>& info) {
-	//TODO
+	REQUIRE_ARGUMENTS(0)
+	NodeExecutorDriver* driver = ObjectWrap::Unwrap<NodeExecutorDriver>(info.Holder());
+	driver->_executorDriver->join();
 }
 
 void NodeExecutorDriver::Run(const Nan::FunctionCallbackInfo<v8::Value>& info) {
-	//TODO
+	REQUIRE_ARGUMENTS(0)
+	NodeExecutorDriver* driver = ObjectWrap::Unwrap<NodeExecutorDriver>(info.Holder());
+	driver->_executorDriver->run();
 }
 
 void NodeExecutorDriver::SendStatusUpdate(const Nan::FunctionCallbackInfo<v8::Value>& info) {
-	//TODO
+	REQUIRE_ARGUMENTS(1)
+	NodeExecutorDriver* driver = ObjectWrap::Unwrap<NodeExecutorDriver>(info.Holder());
+	//TODO:
+	//driver->_executorDriver->sendStatusUpdate();
 }
 
 void NodeExecutorDriver::SendFrameworkMessage(const Nan::FunctionCallbackInfo<v8::Value>& info) {
-	//TODO
+	REQUIRE_ARGUMENTS(1)
+	NodeExecutorDriver* driver = ObjectWrap::Unwrap<NodeExecutorDriver>(info.Holder());
+	//TODO:
+	//driver->_executorDriver->sendFrameworkMessage();
 }

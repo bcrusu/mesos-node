@@ -40,6 +40,20 @@ ByteArray StringToByteArray(const std::string& str) {
 	return result;
 }
 
+void EmitEvent(const v8::Local<v8::Object>& eventEmitter, const std::string& eventName, int argc,
+		v8::Local<v8::Value> argv[]) {
+	Nan::HandleScope scope;
+
+	v8::MaybeLocal<v8::Value> maybeLocalEmit = Nan::Get(eventEmitter, Nan::New("emit").ToLocalChecked());
+
+	if (maybeLocalEmit.IsEmpty())
+		Nan::ThrowError(Nan::New("Could not find 'emit' property.").ToLocalChecked());
+
+	v8::Local<v8::Function> emitFunction = v8::Local<v8::Function>::Cast(maybeLocalEmit.ToLocalChecked());
+
+	emitFunction->Call(v8::Isolate::GetCurrent()->GetCurrentContext()->Global(), argc, argv);
+}
+
 namespace protobuf {
 
 ScopedByteArray Serialize(const google::protobuf::Message& message) {
