@@ -101,7 +101,13 @@ void NodeSchedulerDriver::Run(const Nan::FunctionCallbackInfo<v8::Value>& info) 
 
 void NodeSchedulerDriver::RequestResources(const Nan::FunctionCallbackInfo<v8::Value>& info) {
 	REQUIRE_ARGUMENTS(1)
+	REQUIRE_ARGUMENT_ARRAY(0, requests)
+
+
+
 	NodeSchedulerDriver* driver = ObjectWrap::Unwrap<NodeSchedulerDriver>(info.Holder());
+
+
 	//TODO:
 	//driver->_schedulerDriver->requestResources();
 }

@@ -2,7 +2,7 @@
 #include "Common.hpp"
 
 NodeExecutorDriver::NodeExecutorDriver(v8::Local<v8::Object> jsExecutor) :
-		_executor(new NodeExecutor(jsExecutor)), _executorDriver(new MesosExecutorDriver(_executor)) {
+		_executor(new NodeExecutor(jsExecutor, this)), _executorDriver(new MesosExecutorDriver(_executor)) {
 }
 
 NodeExecutorDriver::~NodeExecutorDriver() {

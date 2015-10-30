@@ -8,8 +8,8 @@ NodeScheduler::NodeScheduler(const v8::Local<v8::Object>& jsSchedulerDriver, con
 
 void NodeScheduler::registered(SchedulerDriver* driver, const FrameworkID& frameworkId, const MasterInfo& masterInfo) {
 	Nan::HandleScope scope;
-	v8::Local<v8::Object> jsframeworkId = protobuf::CreateJsObject(frameworkId, _protosBuilder, "mesos.FrameworkID");
-	v8::Local<v8::Object> jsMasterInfo = protobuf::CreateJsObject(masterInfo, _protosBuilder, "mesos.MasterInfo");
+	v8::Local<v8::Object> jsframeworkId = CreateProtoObject(frameworkId, _protosBuilder, "mesos.FrameworkID");
+	v8::Local<v8::Object> jsMasterInfo = CreateProtoObject(masterInfo, _protosBuilder, "mesos.MasterInfo");
 
 	int argc = 3;
 	v8::Local<v8::Value> argv[argc] = { _jsSchedulerDriver, jsframeworkId, jsMasterInfo };
@@ -18,7 +18,7 @@ void NodeScheduler::registered(SchedulerDriver* driver, const FrameworkID& frame
 
 void NodeScheduler::reregistered(SchedulerDriver*, const MasterInfo& masterInfo) {
 	Nan::HandleScope scope;
-	v8::Local<v8::Object> jsMasterInfo = protobuf::CreateJsObject(masterInfo, _protosBuilder, "mesos.MasterInfo");
+	v8::Local<v8::Object> jsMasterInfo = CreateProtoObject(masterInfo, _protosBuilder, "mesos.MasterInfo");
 
 	int argc = 2;
 	v8::Local<v8::Value> argv[argc] = { _jsSchedulerDriver, jsMasterInfo };
@@ -31,14 +31,18 @@ void NodeScheduler::disconnected(SchedulerDriver* driver) {
 	EmitEvent(_jsScheduler, "disconnected", argc, argv);
 }
 
-void NodeScheduler::resourceOffers(SchedulerDriver* driver, const vector<Offer>& offers) {
-	ScopedByteArrayCollection offersCollection = protobuf::SerializeVector(offers);
-	//TODO: call _scheduler
+void NodeScheduler::resourceOffers(SchedulerDriver* driver, const std::vector<Offer>& offers) {
+	Nan::HandleScope scope;
+	v8::Local<v8::Array> jsOffers = CreateProtoObjectArray(offers, _protosBuilder, "mesos.Offer");
+
+	int argc = 2;
+	v8::Local<v8::Value> argv[argc] = { _jsSchedulerDriver, jsOffers };
+	EmitEvent(_jsScheduler, "resourceOffers", argc, argv);
 }
 
 void NodeScheduler::offerRescinded(SchedulerDriver* driver, const OfferID& offerId) {
 	Nan::HandleScope scope;
-	v8::Local<v8::Object> jsOfferId = protobuf::CreateJsObject(offerId, _protosBuilder, "mesos.OfferID");
+	v8::Local<v8::Object> jsOfferId = CreateProtoObject(offerId, _protosBuilder, "mesos.OfferID");
 
 	int argc = 2;
 	v8::Local<v8::Value> argv[argc] = { _jsSchedulerDriver, jsOfferId };
@@ -47,7 +51,7 @@ void NodeScheduler::offerRescinded(SchedulerDriver* driver, const OfferID& offer
 
 void NodeScheduler::statusUpdate(SchedulerDriver* driver, const TaskStatus& status) {
 	Nan::HandleScope scope;
-	v8::Local<v8::Object> jsStatus = protobuf::CreateJsObject(status, _protosBuilder, "mesos.TaskStatus");
+	v8::Local<v8::Object> jsStatus = CreateProtoObject(status, _protosBuilder, "mesos.TaskStatus");
 
 	int argc = 2;
 	v8::Local<v8::Value> argv[argc] = { _jsSchedulerDriver, jsStatus };
@@ -56,8 +60,8 @@ void NodeScheduler::statusUpdate(SchedulerDriver* driver, const TaskStatus& stat
 
 void NodeScheduler::frameworkMessage(SchedulerDriver* driver, const ExecutorID& executorId, const SlaveID& slaveId, const string& data) {
 	Nan::HandleScope scope;
-	v8::Local<v8::Object> jsExecutorId = protobuf::CreateJsObject(executorId, _protosBuilder, "mesos.ExecutorID");
-	v8::Local<v8::Object> jsSlaveId = protobuf::CreateJsObject(slaveId, _protosBuilder, "mesos.SlaveID");
+	v8::Local<v8::Object> jsExecutorId = CreateProtoObject(executorId, _protosBuilder, "mesos.ExecutorID");
+	v8::Local<v8::Object> jsSlaveId = CreateProtoObject(slaveId, _protosBuilder, "mesos.SlaveID");
 	v8::Local<v8::Object> jsDataBuffer = CreateBuffer(data);
 
 	int argc = 4;
@@ -66,14 +70,22 @@ void NodeScheduler::frameworkMessage(SchedulerDriver* driver, const ExecutorID& 
 }
 
 void NodeScheduler::slaveLost(SchedulerDriver* driver, const SlaveID& slaveId) {
-	ScopedByteArray slaveIdBytes = protobuf::Serialize(slaveId);
-	//TODO: call _scheduler
+	Nan::HandleScope scope;
+	v8::Local<v8::Object> jsSlaveId = CreateProtoObject(slaveId, _protosBuilder, "mesos.SlaveID");
+
+	int argc = 2;
+	v8::Local<v8::Value> argv[argc] = { _jsSchedulerDriver, jsSlaveId };
+	EmitEvent(_jsScheduler, "slaveLost", argc, argv);
 }
 
 void NodeScheduler::executorLost(SchedulerDriver* driver, const ExecutorID& executorId, const SlaveID& slaveId, int status) {
-	ScopedByteArray executorIdBytes = protobuf::Serialize(executorId);
-	ScopedByteArray slaveIdBytes = protobuf::Serialize(slaveId);
-	//TODO: call _scheduler
+	Nan::HandleScope scope;
+	v8::Local<v8::Object> jsSlaveId = CreateProtoObject(slaveId, _protosBuilder, "mesos.SlaveID");
+	v8::Local<v8::Int32> jsStatus = Nan::New(status);
+
+	int argc = 3;
+	v8::Local<v8::Value> argv[argc] = { _jsSchedulerDriver, jsSlaveId, jsStatus };
+	EmitEvent(_jsScheduler, "executorLost", argc, argv);
 }
 
 void NodeScheduler::error(SchedulerDriver* driver, const string& message) {

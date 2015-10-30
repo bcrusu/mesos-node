@@ -1,55 +1,76 @@
 #include "Common.hpp"
 #include "NodeExecutor.hpp"
 
-NodeExecutor::NodeExecutor(v8::Local<v8::Object> jsExecutor, v8::Local<v8::Object> protosBuilder) {
-	//TODO: validate JS executor instance
-	_jsExecutor.Reset(jsExecutor);
-	_protosBuilder.Reset(protosBuilder);
-}
-
-NodeExecutor::~NodeExecutor() {
-	_jsExecutor.Reset();
-	_protosBuilder.Reset();
+NodeExecutor::NodeExecutor(const v8::Local<v8::Object>& jsExecutorDriver, v8::Local<v8::Object> jsExecutor, v8::Local<v8::Object> protosBuilder) :
+		_jsExecutorDriver(jsExecutorDriver), _jsExecutor(jsExecutor), _protosBuilder(protosBuilder) {
 }
 
 void NodeExecutor::registered(ExecutorDriver* driver, const ExecutorInfo& executorInfo, const FrameworkInfo& frameworkInfo,
 		const SlaveInfo& slaveInfo) {
-	ScopedByteArray executorInfoBytes = protobuf::Serialize(executorInfo);
-	ScopedByteArray frameworkInfoBytes = protobuf::Serialize(frameworkInfo);
-	ScopedByteArray slaveInfoBytes = protobuf::Serialize(slaveInfo);
+	Nan::HandleScope scope;
+	v8::Local<v8::Object> jsExecutorInfo = CreateProtoObject(executorInfo, _protosBuilder, "mesos.ExecutorInfo");
+	v8::Local<v8::Object> jsFrameworkInfo = CreateProtoObject(frameworkInfo, _protosBuilder, "mesos.FrameworkInfo");
+	v8::Local<v8::Object> jsSlaveInfo = CreateProtoObject(slaveInfo, _protosBuilder, "mesos.SlaveInfo");
 
-	//TODO: call _executor
+	int argc = 4;
+	v8::Local<v8::Value> argv[argc] = { _jsExecutorDriver, jsExecutorInfo, jsFrameworkInfo, jsSlaveInfo };
+	EmitEvent(_jsExecutor, "registered", argc, argv);
 }
 
 void NodeExecutor::reregistered(ExecutorDriver* driver, const SlaveInfo& slaveInfo) {
-	ScopedByteArray slaveInfoBytes = protobuf::Serialize(slaveInfo);
-	//TODO: call _executor
+	Nan::HandleScope scope;
+	v8::Local<v8::Object> jsSlaveInfo = CreateProtoObject(slaveInfo, _protosBuilder, "mesos.SlaveInfo");
+
+	int argc = 2;
+	v8::Local<v8::Value> argv[argc] = { _jsExecutorDriver, jsSlaveInfo };
+	EmitEvent(_jsExecutor, "reregistered", argc, argv);
 }
 
 void NodeExecutor::disconnected(ExecutorDriver* driver) {
-	//TODO: call _executor
+	int argc = 1;
+	v8::Local<v8::Value> argv[argc] = { _jsExecutorDriver };
+	EmitEvent(_jsExecutor, "disconnected", argc, argv);
 }
 
 void NodeExecutor::launchTask(ExecutorDriver* driver, const TaskInfo& task) {
-	ScopedByteArray taskBytes = protobuf::Serialize(task);
-	//TODO: call _executor
+	Nan::HandleScope scope;
+	v8::Local<v8::Object> jsTaskInfo = CreateProtoObject(task, _protosBuilder, "mesos.TaskInfo");
+
+	int argc = 2;
+	v8::Local<v8::Value> argv[argc] = { _jsExecutorDriver, jsTaskInfo };
+	EmitEvent(_jsExecutor, "launchTask", argc, argv);
 }
 
 void NodeExecutor::killTask(ExecutorDriver* driver, const TaskID& taskId) {
-	ScopedByteArray taskIdBytes = protobuf::Serialize(taskId);
-	//TODO: call _executor
+	Nan::HandleScope scope;
+	v8::Local<v8::Object> jsTaskId = CreateProtoObject(taskId, _protosBuilder, "mesos.TaskID");
+
+	int argc = 2;
+	v8::Local<v8::Value> argv[argc] = { _jsExecutorDriver, jsTaskId };
+	EmitEvent(_jsExecutor, "killTask", argc, argv);
 
 }
 
 void NodeExecutor::frameworkMessage(ExecutorDriver* driver, const string& data) {
-	ByteArray dataBytes = StringToByteArray(data);
-	//TODO: call _executor
+	Nan::HandleScope scope;
+	v8::Local<v8::Object> jsDataBuffer = CreateBuffer(data);
+
+	int argc = 2;
+	v8::Local<v8::Value> argv[argc] = { _jsExecutorDriver, jsDataBuffer };
+	EmitEvent(_jsExecutor, "frameworkMessage", argc, argv);
 }
 
 void NodeExecutor::shutdown(ExecutorDriver* driver) {
-	//TODO: call _executor
+	int argc = 1;
+	v8::Local<v8::Value> argv[argc] = { _jsExecutorDriver };
+	EmitEvent(_jsExecutor, "shutdown", argc, argv);
 }
 
 void NodeExecutor::error(ExecutorDriver* driver, const string& message) {
-	//TODO: call _executor
+	Nan::HandleScope scope;
+	v8::MaybeLocal<v8::String> jsMessage = Nan::New(message);
+
+	int argc = 2;
+	v8::Local<v8::Value> argv[argc] = { _jsExecutorDriver, jsMessage.ToLocalChecked() };
+	EmitEvent(_jsExecutor, "error", argc, argv);
 }
