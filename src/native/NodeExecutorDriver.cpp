@@ -34,6 +34,8 @@ void NodeExecutorDriver::Init(v8::Local<v8::Object> exports) {
 void NodeExecutorDriver::New(const Nan::FunctionCallbackInfo<v8::Value>& info) {
 	REQUIRE_ARGUMENTS(2)
 
+	Nan::HandleScope scope;
+
 	if (info.IsConstructCall()) {
 		REQUIRE_ARGUMENT_OBJECT(0, jsProtosBuilder)
 		REQUIRE_ARGUMENT_OBJECT(1, jsExecutor)
@@ -97,8 +99,8 @@ void NodeExecutorDriver::SendFrameworkMessage(const Nan::FunctionCallbackInfo<v8
 	Nan::HandleScope scope;
 
 	REQUIRE_ARGUMENTS(1)
-	REQUIRE_ARGUMENT_STRING(0, jsMessage)
-	std::string message(*jsMessage, jsMessage.length());
+	REQUIRE_ARGUMENT_ARRAYBUFFER(0, jsMessage)
+	std::string message = ArrayBufferToString(jsMessage);
 
 	NodeExecutorDriver* driver = ObjectWrap::Unwrap<NodeExecutorDriver>(info.Holder());
 	driver->_executorDriver->sendFrameworkMessage(message);

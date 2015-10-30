@@ -1,6 +1,15 @@
 #include <sstream>
 #include "Common.hpp"
 
+std::string ArrayBufferToString(v8::Local<v8::ArrayBuffer> arrayBuffer){
+	v8::ArrayBuffer::Contents contents = arrayBuffer->GetContents();
+	int size = contents.ByteLength();
+	char* data = (char*)contents.Data();
+
+	std::string result(data, size);
+	return result;
+}
+
 std::vector<std::string> SplitString(const std::string &s, char delim) {
 	std::vector<std::string> result;
 	std::stringstream ss(s);

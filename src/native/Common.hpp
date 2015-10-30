@@ -6,6 +6,8 @@
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 #include <nan.h>
 
+std::string ArrayBufferToString(v8::Local<v8::ArrayBuffer> arrayBuffer);
+
 v8::Local<v8::Value> CallFunction(const v8::Local<v8::Object>& object, const std::string& functionName, int argc, v8::Local<v8::Value> argv[]);
 v8::Local<v8::Value> CallFunction(const v8::Local<v8::Object>& object, const std::string& functionName);
 
@@ -78,6 +80,11 @@ std::vector<T> CreateProtoMessageVector(const v8::Local<v8::Array>& protoObjectA
         return Nan::ThrowTypeError("Expected " #n "arguments");                \
     }
 
+#define REQUIRE_ARGUMENTS_OR(n1, n2)                                           \
+    if (info.Length() != (n1) && info.Length() != (n2)) {                       \
+        return Nan::ThrowTypeError("Expected " #n1 " or " #n2 "arguments");    \
+    }
+
 #define REQUIRE_ARGUMENT_FUNCTION(i, var)                                      \
     if (info.Length() <= (i) || !info[i]->IsFunction()) {                      \
         return Nan::ThrowTypeError("Argument " #i " must be a function.");     \
@@ -95,6 +102,12 @@ std::vector<T> CreateProtoMessageVector(const v8::Local<v8::Array>& protoObjectA
         return Nan::ThrowTypeError("Argument " #i " must be an array.");       \
     }                                                                          \
     v8::Local<v8::Array> var = v8::Local<v8::Array>::Cast(info[i]);
+
+#define REQUIRE_ARGUMENT_ARRAYBUFFER(i, var)                                   \
+    if (info.Length() <= (i) || !info[i]->IsArrayBuffer()) {                   \
+        return Nan::ThrowTypeError("Argument " #i " must be an array buffer.");\
+    }                                                                          \
+    v8::Local<v8::ArrayBuffer> var = v8::Local<v8::ArrayBuffer>::Cast(info[i]);
 
 #define REQUIRE_ARGUMENT_BOOLEAN(i, var)                                       \
     if (info.Length() <= (i) || !info[i]->IsBoolean()) {                       \
