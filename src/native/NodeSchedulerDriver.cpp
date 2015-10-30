@@ -190,7 +190,7 @@ void NodeSchedulerDriver::DeclineOffer(const Nan::FunctionCallbackInfo<v8::Value
 	REQUIRE_ARGUMENTS_OR(1, 2)
 	Nan::HandleScope scope;
 
-	REQUIRE_ARGUMENT_ARRAY(0, jsOfferId)
+	REQUIRE_ARGUMENT_OBJECT(0, jsOfferId)
 	mesos::OfferID offer = CreateProtoMessage<mesos::OfferID>(jsOfferId);
 
 	NodeSchedulerDriver* driver = ObjectWrap::Unwrap<NodeSchedulerDriver>(info.Holder());
