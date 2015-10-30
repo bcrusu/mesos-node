@@ -1,16 +1,14 @@
 #include "NodeSchedulerDriver.hpp"
 #include "Common.hpp"
 
-NodeSchedulerDriver::NodeSchedulerDriver(v8::Local<v8::Object> jsScheduler, const FrameworkInfo& framework,
-		const std::string& master, bool implicitAcknowlegements, const Credential& credential) :
-		_scheduler(new NodeScheduler(jsScheduler)), _schedulerDriver(
-				new MesosSchedulerDriver(_scheduler, framework, master, implicitAcknowlegements, credential)) {
+NodeSchedulerDriver::NodeSchedulerDriver(NodeScheduler* scheduler, const FrameworkInfo& framework, const std::string& master,
+		bool implicitAcknowlegements, const Credential& credential) :
+		_scheduler(scheduler), _schedulerDriver(new MesosSchedulerDriver(_scheduler, framework, master, implicitAcknowlegements, credential)) {
 }
 
-NodeSchedulerDriver::NodeSchedulerDriver(v8::Local<v8::Object> jsScheduler, const FrameworkInfo& framework,
-		const std::string& master, bool implicitAcknowlegements) :
-		_scheduler(new NodeScheduler(jsScheduler)), _schedulerDriver(
-				new MesosSchedulerDriver(_scheduler, framework, master, implicitAcknowlegements)) {
+NodeSchedulerDriver::NodeSchedulerDriver(NodeScheduler* scheduler, const FrameworkInfo& framework, const std::string& master,
+		bool implicitAcknowlegements) :
+		_scheduler(scheduler), _schedulerDriver(new MesosSchedulerDriver(_scheduler, framework, master, implicitAcknowlegements)) {
 }
 
 NodeSchedulerDriver::~NodeSchedulerDriver() {
@@ -48,22 +46,42 @@ void NodeSchedulerDriver::Init(v8::Local<v8::Object> exports) {
 }
 
 void NodeSchedulerDriver::New(const Nan::FunctionCallbackInfo<v8::Value>& info) {
-	REQUIRE_ARGUMENTS(1)
+	int argc = info.Length();
+
+	if (argc < 5 || argc > 6)
+		return Nan::ThrowTypeError("Wrong number of arguments.");
 
 	if (info.IsConstructCall()) {
-		REQUIRE_ARGUMENT_OBJECT(0, scheduler)
+		REQUIRE_ARGUMENT_OBJECT(0, jsProtosBuilder)
+		REQUIRE_ARGUMENT_OBJECT(1, jsScheduler)
+		REQUIRE_ARGUMENT_OBJECT(2, jsFrameworkInfo)
+		REQUIRE_ARGUMENT_STRING(3, jsMaster)
+		REQUIRE_ARGUMENT_BOOLEAN(4, jsImplicitAcknowlegements)
+		v8::Local<v8::Object> jsSchedulerDriver = info.This();
 
-		//TODO: ctor parameters
-		FrameworkInfo frameworkInfo;
-		std::string master;
+		mesos::FrameworkInfo frameworkInfo = CreateProtoMessage<mesos::FrameworkInfo>(jsFrameworkInfo);
+		std::string master(*jsMaster, jsMaster.length());
+		bool implicitAcknowlegements = jsImplicitAcknowlegements->BooleanValue();
 
-		NodeSchedulerDriver* driver = new NodeSchedulerDriver(scheduler, frameworkInfo, master, true);
+		NodeScheduler* scheduler = new NodeScheduler(jsSchedulerDriver, jsScheduler, jsProtosBuilder);
+		NodeSchedulerDriver* schedulerDriver;
 
-		driver->Wrap(info.This());
-		info.GetReturnValue().Set(info.This());
+		if (argc == 6) {
+			REQUIRE_ARGUMENT_OBJECT(5, jsCredential)
+			mesos::Credential credential = CreateProtoMessage<mesos::Credential>(jsCredential);
+
+			schedulerDriver = new NodeSchedulerDriver(scheduler, frameworkInfo, master, implicitAcknowlegements, credential);
+		} else {
+			schedulerDriver = new NodeSchedulerDriver(scheduler, frameworkInfo, master, implicitAcknowlegements);
+		}
+
+		schedulerDriver->Wrap(jsSchedulerDriver);
+		info.GetReturnValue().Set(jsSchedulerDriver);
 	} else {
-		const int argc = 1;
-		v8::Local<v8::Value> argv[argc] = { info[0] };
+		v8::Local<v8::Value> argv[argc] = { info[0], info[1], info[2], info[3], info[4] };
+		if (argc == 6)
+			argv[5] = info[5];
+
 		v8::Local<v8::Function> cons = Nan::New<v8::Function>(_constructor);
 		info.GetReturnValue().Set(cons->NewInstance(argc, argv));
 	}
@@ -103,10 +121,7 @@ void NodeSchedulerDriver::RequestResources(const Nan::FunctionCallbackInfo<v8::V
 	REQUIRE_ARGUMENTS(1)
 	REQUIRE_ARGUMENT_ARRAY(0, requests)
 
-
-
 	NodeSchedulerDriver* driver = ObjectWrap::Unwrap<NodeSchedulerDriver>(info.Holder());
-
 
 	//TODO:
 	//driver->_schedulerDriver->requestResources();

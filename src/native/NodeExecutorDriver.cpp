@@ -1,13 +1,13 @@
 #include "NodeExecutorDriver.hpp"
 #include "Common.hpp"
 
-NodeExecutorDriver::NodeExecutorDriver(v8::Local<v8::Object> jsExecutor) :
-		_executor(new NodeExecutor(jsExecutor, this)), _executorDriver(new MesosExecutorDriver(_executor)) {
+NodeExecutorDriver::NodeExecutorDriver(NodeExecutor* executor) :
+		_executor(executor), _executorDriver(new MesosExecutorDriver(_executor)) {
 }
 
 NodeExecutorDriver::~NodeExecutorDriver() {
-	delete _executor;
 	delete _executorDriver;
+	delete _executor;
 }
 
 void NodeExecutorDriver::Init(v8::Local<v8::Object> exports) {
@@ -32,17 +32,21 @@ void NodeExecutorDriver::Init(v8::Local<v8::Object> exports) {
 }
 
 void NodeExecutorDriver::New(const Nan::FunctionCallbackInfo<v8::Value>& info) {
-	REQUIRE_ARGUMENTS(1)
+	REQUIRE_ARGUMENTS(2)
 
 	if (info.IsConstructCall()) {
-		REQUIRE_ARGUMENT_OBJECT(0, executor)
+		REQUIRE_ARGUMENT_OBJECT(0, jsProtosBuilder)
+		REQUIRE_ARGUMENT_OBJECT(1, jsExecutor)
+		v8::Local<v8::Object> jsExecutorDriver = info.This();
 
-		NodeExecutorDriver* driver = new NodeExecutorDriver(executor);
-		driver->Wrap(info.This());
-		info.GetReturnValue().Set(info.This());
+		NodeExecutor* executor = new NodeExecutor(jsExecutorDriver, jsExecutor, jsProtosBuilder);
+		NodeExecutorDriver* executorDriver = new NodeExecutorDriver(executor);
+
+		executorDriver->Wrap(jsExecutorDriver);
+		info.GetReturnValue().Set(jsExecutorDriver);
 	} else {
-		const int argc = 1;
-		v8::Local<v8::Value> argv[argc] = { info[0] };
+		const int argc = 2;
+		v8::Local<v8::Value> argv[argc] = { info[0], info[1] };
 		v8::Local<v8::Function> cons = Nan::New<v8::Function>(_constructor);
 		info.GetReturnValue().Set(cons->NewInstance(argc, argv));
 	}
@@ -79,15 +83,23 @@ void NodeExecutorDriver::Run(const Nan::FunctionCallbackInfo<v8::Value>& info) {
 }
 
 void NodeExecutorDriver::SendStatusUpdate(const Nan::FunctionCallbackInfo<v8::Value>& info) {
+	Nan::HandleScope scope;
+
 	REQUIRE_ARGUMENTS(1)
+	REQUIRE_ARGUMENT_OBJECT(0, jsTaskStatus)
+	mesos::TaskStatus taskStatus = CreateProtoMessage<mesos::TaskStatus>(jsTaskStatus);
+
 	NodeExecutorDriver* driver = ObjectWrap::Unwrap<NodeExecutorDriver>(info.Holder());
-	//TODO:
-	//driver->_executorDriver->sendStatusUpdate();
+	driver->_executorDriver->sendStatusUpdate(taskStatus);
 }
 
 void NodeExecutorDriver::SendFrameworkMessage(const Nan::FunctionCallbackInfo<v8::Value>& info) {
+	Nan::HandleScope scope;
+
 	REQUIRE_ARGUMENTS(1)
+	REQUIRE_ARGUMENT_STRING(0, jsMessage)
+	std::string message(*jsMessage, jsMessage.length());
+
 	NodeExecutorDriver* driver = ObjectWrap::Unwrap<NodeExecutorDriver>(info.Holder());
-	//TODO:
-	//driver->_executorDriver->sendFrameworkMessage();
+	driver->_executorDriver->sendFrameworkMessage(message);
 }

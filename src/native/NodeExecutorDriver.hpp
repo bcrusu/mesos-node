@@ -13,7 +13,7 @@ public:
 	static void Init(v8::Local<v8::Object> exports);
 
 private:
-	explicit NodeExecutorDriver(v8::Local<v8::Object> jsExecutor);
+	explicit NodeExecutorDriver(NodeExecutor* executor);
 	~NodeExecutorDriver();
 
 	static void New(const Nan::FunctionCallbackInfo<v8::Value>& info);

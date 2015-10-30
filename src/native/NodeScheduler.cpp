@@ -90,9 +90,9 @@ void NodeScheduler::executorLost(SchedulerDriver* driver, const ExecutorID& exec
 
 void NodeScheduler::error(SchedulerDriver* driver, const string& message) {
 	Nan::HandleScope scope;
-	v8::Local<v8::Object> jsMessage = Nan::New(message);
+	v8::MaybeLocal<v8::String> jsMessage = Nan::New(message);
 
 	int argc = 2;
-	v8::Local<v8::Value> argv[argc] = { _jsSchedulerDriver, jsMessage };
+	v8::Local<v8::Value> argv[argc] = { _jsSchedulerDriver, jsMessage.ToLocalChecked() };
 	EmitEvent(_jsScheduler, "error", argc, argv);
 }

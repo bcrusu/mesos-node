@@ -22,12 +22,10 @@ v8::Local<v8::Object> GetObjectForPath(const v8::Local<v8::Object>& root, const 
 		std::string part = parts[i];
 
 		v8::MaybeLocal<v8::Value> maybeValue = Nan::Get(currentValue, Nan::New(part).ToLocalChecked());
-		if (maybeValue.IsEmpty())
-			Nan::ThrowError(Nan::New("Could not find path object '" + part + "'.").ToLocalChecked());
+		assert(!maybeValue.IsEmpty());
 
 		v8::MaybeLocal<v8::Object> maybeObject = v8::Local<v8::Object>::Cast(maybeValue.ToLocalChecked());
-		if (maybeObject.IsEmpty())
-			Nan::ThrowError(Nan::New("Path is not an object '" + path + "'.").ToLocalChecked());
+		assert(!maybeObject.IsEmpty());
 
 		currentValue = maybeObject.ToLocalChecked();
 	}
@@ -36,18 +34,19 @@ v8::Local<v8::Object> GetObjectForPath(const v8::Local<v8::Object>& root, const 
 }
 
 void BufferFreeCallback(char* data, void* hint) {
-	delete[] data;
+	if (hint) {
+		delete[] data;
+	}
 }
 
 v8::Local<v8::Object> CreateBuffer(const std::string& str) {
 	Nan::EscapableHandleScope scope;
 
 	int size = str.size();
-	char* data = (char*)str.c_str();
+	char* data = (char*) str.c_str();
 
-	v8::MaybeLocal<v8::Object> buffer = Nan::NewBuffer(data, size);
-	if (buffer.IsEmpty())
-		Nan::ThrowError(Nan::New("Could not create buffer for string.").ToLocalChecked());
+	v8::MaybeLocal<v8::Object> buffer = Nan::NewBuffer(data, size, BufferFreeCallback, NULL);
+	assert(!buffer.IsEmpty());
 
 	return scope.Escape(buffer.ToLocalChecked());
 }
@@ -62,15 +61,14 @@ v8::Local<v8::Object> CreateProtoObject(const google::protobuf::Message& message
 	char* data = new char[size];
 	message.SerializeToArray(data, size);
 
-	v8::MaybeLocal<v8::Object> buffer = Nan::NewBuffer(data, size, BufferFreeCallback, 0);
+	v8::MaybeLocal<v8::Object> buffer = Nan::NewBuffer(data, size, BufferFreeCallback, data);
 	assert(!buffer.IsEmpty());
 
 	v8::Local<v8::Value> argv[1] = { buffer.ToLocalChecked() };
 	v8::Local<v8::Value> decodeResult = CallFunction(proto, "decode", 1, argv);
 
 	v8::Local<v8::Object> result = v8::Local<v8::Object>::Cast(decodeResult);
-	if (result.IsEmpty())
-		Nan::ThrowError(Nan::New("Invalid decode result. Not an Object.").ToLocalChecked());
+	assert(!result.IsEmpty());
 
 	return scope.Escape(result);
 }
@@ -83,12 +81,10 @@ v8::Local<v8::Value> CallFunction(const v8::Local<v8::Object>& object, const std
 	Nan::EscapableHandleScope scope;
 
 	v8::MaybeLocal<v8::Value> maybe = Nan::Get(object, Nan::New(functionName).ToLocalChecked());
-	if (maybe.IsEmpty())
-		Nan::ThrowError(Nan::New("Could not find function '" + functionName + "'.").ToLocalChecked());
+	assert(!maybe.IsEmpty());
 
 	v8::Local<v8::Function> function = v8::Local<v8::Function>::Cast(maybe.ToLocalChecked());
-	if (function.IsEmpty())
-		Nan::ThrowError(Nan::New("Invalid property '" + functionName + "'. Not a function.").ToLocalChecked());
+	assert(!function.IsEmpty());
 
 	v8::MaybeLocal<v8::Value> result = function->Call(v8::Isolate::GetCurrent()->GetCurrentContext(), object, argc, argv);
 
@@ -96,6 +92,6 @@ v8::Local<v8::Value> CallFunction(const v8::Local<v8::Object>& object, const std
 }
 
 v8::Local<v8::Value> CallFunction(const v8::Local<v8::Object>& object, const std::string& functionName) {
-	v8::Local<v8::Value> argv[0] = {};
+	v8::Local<v8::Value> argv[0] = { };
 	return CallFunction(object, functionName, 0, argv);
 }

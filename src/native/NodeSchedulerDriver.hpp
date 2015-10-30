@@ -12,10 +12,9 @@ public:
 	static void Init(v8::Local<v8::Object> exports);
 
 private:
-	explicit NodeSchedulerDriver(v8::Local<v8::Object> jsScheduler, const FrameworkInfo& framework, const std::string& master,
-			bool implicitAcknowlegements, const Credential& credential);
-	explicit NodeSchedulerDriver(v8::Local<v8::Object> jsScheduler, const FrameworkInfo& framework, const std::string& master,
-			bool implicitAcknowlegements);
+	explicit NodeSchedulerDriver(NodeScheduler* scheduler, const FrameworkInfo& framework, const std::string& master, bool implicitAcknowlegements,
+			const Credential& credential);
+	explicit NodeSchedulerDriver(NodeScheduler* scheduler, const FrameworkInfo& framework, const std::string& master, bool implicitAcknowlegements);
 	~NodeSchedulerDriver();
 
 	static void New(const Nan::FunctionCallbackInfo<v8::Value>& info);

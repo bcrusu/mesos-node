@@ -17,7 +17,7 @@ v8::Local<v8::Object> CreateProtoObject(const google::protobuf::Message& message
 		const std::string& protoClassPath);
 
 template<class T>
-v8::Local<v8::Object> CreateProtoObjectArray(const std::vector<T>& messages, const v8::Local<v8::Object>& protosRoot,
+v8::Local<v8::Array> CreateProtoObjectArray(const std::vector<T>& messages, const v8::Local<v8::Object>& protosRoot,
 		const std::string& protoClassPath) {
 	Nan::EscapableHandleScope scope;
 
@@ -64,8 +64,7 @@ std::vector<T> CreateProtoMessageVector(const v8::Local<v8::Array>& protoObjectA
 	for (int i = 0; i < size; i++) {
 		v8::Local<v8::Value> item = protoObjectArray->Get(i);
 		v8::Local<v8::Object> protoObject = v8::Local<v8::Object>::Cast(item);
-		if (protoObject.IsEmpty())
-			Nan::ThrowError(Nan::New("Invalid array item detected at index " + std::to_string(i)).ToLocalChecked());
+		assert(!protoObject.IsEmpty());
 
 		T message = CreateProtoMessage<T>(protoObject);
 		result.push_back(message);
@@ -81,25 +80,31 @@ std::vector<T> CreateProtoMessageVector(const v8::Local<v8::Array>& protoObjectA
 
 #define REQUIRE_ARGUMENT_FUNCTION(i, var)                                      \
     if (info.Length() <= (i) || !info[i]->IsFunction()) {                      \
-        return Nan::ThrowTypeError("Argument " #i " must be a function.");      \
+        return Nan::ThrowTypeError("Argument " #i " must be a function.");     \
     }                                                                          \
 	v8::Local<v8::Function> var = v8::Local<v8::Function>::Cast(info[i]);
 
 #define REQUIRE_ARGUMENT_OBJECT(i, var)                                        \
     if (info.Length() <= (i) || !info[i]->IsObject()) {                        \
-        return Nan::ThrowTypeError("Argument " #i " must be an object.");       \
+        return Nan::ThrowTypeError("Argument " #i " must be an object.");      \
     }                                                                          \
     v8::Local<v8::Object> var = v8::Local<v8::Object>::Cast(info[i]);
 
-#define REQUIRE_ARGUMENT_ARRAY(i, var)                                        \
-    if (info.Length() <= (i) || !info[i]->IsArray()) {                        \
+#define REQUIRE_ARGUMENT_ARRAY(i, var)                                         \
+    if (info.Length() <= (i) || !info[i]->IsArray()) {                         \
         return Nan::ThrowTypeError("Argument " #i " must be an array.");       \
     }                                                                          \
     v8::Local<v8::Array> var = v8::Local<v8::Array>::Cast(info[i]);
 
+#define REQUIRE_ARGUMENT_BOOLEAN(i, var)                                       \
+    if (info.Length() <= (i) || !info[i]->IsBoolean()) {                       \
+        return Nan::ThrowTypeError("Argument " #i " must be a boolean.");      \
+    }                                                                          \
+    v8::Local<v8::Boolean> var = v8::Local<v8::Boolean>::Cast(info[i]);
+
 #define REQUIRE_ARGUMENT_STRING(i, var)                                        \
     if (info.Length() <= (i) || !info[i]->IsString()) {                        \
-        return Nan::ThrowTypeError("Argument " #i " must be a string.");        \
+        return Nan::ThrowTypeError("Argument " #i " must be a string.");       \
     }                                                                          \
     Nan::Utf8String var(info[i]);
 
