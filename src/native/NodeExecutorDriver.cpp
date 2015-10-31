@@ -1,5 +1,6 @@
 #include "NodeExecutorDriver.hpp"
 #include "Common.hpp"
+#include "Macros.hpp"
 
 NodeExecutorDriver::NodeExecutorDriver(NodeExecutor* executor) :
 		_executor(executor), _executorDriver(new MesosExecutorDriver(_executor)) {

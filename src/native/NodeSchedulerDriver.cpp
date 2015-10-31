@@ -1,5 +1,6 @@
 #include "NodeSchedulerDriver.hpp"
 #include "Common.hpp"
+#include "Macros.hpp"
 
 NodeSchedulerDriver::NodeSchedulerDriver(NodeScheduler* scheduler, const FrameworkInfo& framework, const std::string& master,
 		bool implicitAcknowlegements, const Credential& credential) :

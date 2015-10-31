@@ -1,6 +1,6 @@
 function getApi(version) {
     if (version.isUndefined())
-        version = 0;
+        version = 1;
 
     switch (version) {
         case 0:

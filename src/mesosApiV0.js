@@ -1,18 +1,22 @@
 var mesosUtils = require('./mesosUtils.js');
-
 var nativeApi = require('bindings')('mesosApi.node');
+var protosBuilder = require('./generated/mesos.js');
+
 var MesosSchedulerDriver = nativeApi.MesosSchedulerDriver;
 var MesosExecutorDriver = nativeApi.MesosExecutorDriver;
 
-exports.protos = require('./generated/mesos.js');
+exports.protos = protosBuilder;
 
-// TODO: add all other Scheduler Driver ctor parameters
-exports.createSchedulerDriver = function(scheduler) {
+exports.createSchedulerDriver = function (scheduler, frameworkInfo, masterAddress, implicitAcknowlegements, credential) {
     mesosUtils.validateScheduler(scheduler);
-    return new MesosSchedulerDriver(scheduler);
+
+    if (credential === undefined)
+        return new MesosSchedulerDriver(protosBuilder, scheduler, frameworkInfo, masterAddress, implicitAcknowlegements);
+    else
+        return new MesosSchedulerDriver(protosBuilder, scheduler, frameworkInfo, masterAddress, implicitAcknowlegements, credential);
 }
 
-exports.createExecutorDriver = function(executor) {
+exports.createExecutorDriver = function (executor) {
     mesosUtils.validateExecutor(executor);
-    return new MesosExecutorDriver(executor);
+    return new MesosExecutorDriver(protosBuilder, executor);
 }
