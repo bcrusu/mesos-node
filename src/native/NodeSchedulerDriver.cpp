@@ -2,6 +2,8 @@
 #include "Common.hpp"
 #include "Macros.hpp"
 
+Nan::Persistent<v8::Function> NodeSchedulerDriver::_constructor;
+
 NodeSchedulerDriver::NodeSchedulerDriver(NodeScheduler* scheduler, const FrameworkInfo& framework, const std::string& master,
 		bool implicitAcknowlegements, const Credential& credential) :
 		_scheduler(scheduler), _schedulerDriver(new MesosSchedulerDriver(_scheduler, framework, master, implicitAcknowlegements, credential)) {
@@ -90,7 +92,8 @@ void NodeSchedulerDriver::New(const Nan::FunctionCallbackInfo<v8::Value>& info) 
 void NodeSchedulerDriver::Start(const Nan::FunctionCallbackInfo<v8::Value>& info) {
 	REQUIRE_ARGUMENTS(0)
 	NodeSchedulerDriver* driver = ObjectWrap::Unwrap<NodeSchedulerDriver>(info.Holder());
-	driver->_schedulerDriver->start();
+	mesos::Status status = driver->_schedulerDriver->start();
+	info.GetReturnValue().Set(status);
 }
 
 void NodeSchedulerDriver::Stop(const Nan::FunctionCallbackInfo<v8::Value>& info) {
@@ -104,25 +107,29 @@ void NodeSchedulerDriver::Stop(const Nan::FunctionCallbackInfo<v8::Value>& info)
 	}
 
 	NodeSchedulerDriver* driver = ObjectWrap::Unwrap<NodeSchedulerDriver>(info.Holder());
-	driver->_schedulerDriver->stop(failover);
+	mesos::Status status = driver->_schedulerDriver->stop(failover);
+	info.GetReturnValue().Set(status);
 }
 
 void NodeSchedulerDriver::Abort(const Nan::FunctionCallbackInfo<v8::Value>& info) {
 	REQUIRE_ARGUMENTS(0)
 	NodeSchedulerDriver* driver = ObjectWrap::Unwrap<NodeSchedulerDriver>(info.Holder());
-	driver->_schedulerDriver->abort();
+	mesos::Status status = driver->_schedulerDriver->abort();
+	info.GetReturnValue().Set(status);
 }
 
 void NodeSchedulerDriver::Join(const Nan::FunctionCallbackInfo<v8::Value>& info) {
 	REQUIRE_ARGUMENTS(0)
 	NodeSchedulerDriver* driver = ObjectWrap::Unwrap<NodeSchedulerDriver>(info.Holder());
-	driver->_schedulerDriver->join();
+	mesos::Status status = driver->_schedulerDriver->join();
+	info.GetReturnValue().Set(status);
 }
 
 void NodeSchedulerDriver::Run(const Nan::FunctionCallbackInfo<v8::Value>& info) {
 	REQUIRE_ARGUMENTS(0)
 	NodeSchedulerDriver* driver = ObjectWrap::Unwrap<NodeSchedulerDriver>(info.Holder());
-	driver->_schedulerDriver->run();
+	mesos::Status status = driver->_schedulerDriver->run();
+	info.GetReturnValue().Set(status);
 }
 
 void NodeSchedulerDriver::RequestResources(const Nan::FunctionCallbackInfo<v8::Value>& info) {
@@ -133,7 +140,8 @@ void NodeSchedulerDriver::RequestResources(const Nan::FunctionCallbackInfo<v8::V
 	std::vector<mesos::Request> requests = CreateProtoMessageVector<mesos::Request>(jsRequests);
 
 	NodeSchedulerDriver* driver = ObjectWrap::Unwrap<NodeSchedulerDriver>(info.Holder());
-	driver->_schedulerDriver->requestResources(requests);
+	mesos::Status status = driver->_schedulerDriver->requestResources(requests);
+	info.GetReturnValue().Set(status);
 }
 
 void NodeSchedulerDriver::LaunchTasks(const Nan::FunctionCallbackInfo<v8::Value>& info) {
@@ -146,14 +154,17 @@ void NodeSchedulerDriver::LaunchTasks(const Nan::FunctionCallbackInfo<v8::Value>
 	std::vector<mesos::TaskInfo> tasks = CreateProtoMessageVector<mesos::TaskInfo>(jsTasks);
 
 	NodeSchedulerDriver* driver = ObjectWrap::Unwrap<NodeSchedulerDriver>(info.Holder());
+	mesos::Status status;
 
 	if (info.Length() == 3) {
 		REQUIRE_ARGUMENT_OBJECT(2, jsFilters)
 		mesos::Filters filters = CreateProtoMessage<mesos::Filters>(jsFilters);
-		driver->_schedulerDriver->launchTasks(offerIds, tasks, filters);
+		status = driver->_schedulerDriver->launchTasks(offerIds, tasks, filters);
 	} else {
-		driver->_schedulerDriver->launchTasks(offerIds, tasks);
+		status = driver->_schedulerDriver->launchTasks(offerIds, tasks);
 	}
+
+	info.GetReturnValue().Set(status);
 }
 
 void NodeSchedulerDriver::KillTask(const Nan::FunctionCallbackInfo<v8::Value>& info) {
@@ -164,7 +175,8 @@ void NodeSchedulerDriver::KillTask(const Nan::FunctionCallbackInfo<v8::Value>& i
 	mesos::TaskID taskId = CreateProtoMessage<mesos::TaskID>(jsTaskId);
 
 	NodeSchedulerDriver* driver = ObjectWrap::Unwrap<NodeSchedulerDriver>(info.Holder());
-	driver->_schedulerDriver->killTask(taskId);
+	mesos::Status status = driver->_schedulerDriver->killTask(taskId);
+	info.GetReturnValue().Set(status);
 }
 
 void NodeSchedulerDriver::AcceptOffers(const Nan::FunctionCallbackInfo<v8::Value>& info) {
@@ -177,14 +189,17 @@ void NodeSchedulerDriver::AcceptOffers(const Nan::FunctionCallbackInfo<v8::Value
 	std::vector<mesos::Offer::Operation> operations = CreateProtoMessageVector<mesos::Offer::Operation>(jsOperations);
 
 	NodeSchedulerDriver* driver = ObjectWrap::Unwrap<NodeSchedulerDriver>(info.Holder());
+	mesos::Status status;
 
 	if (info.Length() == 3) {
 		REQUIRE_ARGUMENT_OBJECT(2, jsFilters)
 		mesos::Filters filters = CreateProtoMessage<mesos::Filters>(jsFilters);
-		driver->_schedulerDriver->acceptOffers(offerIds, operations, filters);
+		status = driver->_schedulerDriver->acceptOffers(offerIds, operations, filters);
 	} else {
-		driver->_schedulerDriver->acceptOffers(offerIds, operations);
+		status = driver->_schedulerDriver->acceptOffers(offerIds, operations);
 	}
+
+	info.GetReturnValue().Set(status);
 }
 
 void NodeSchedulerDriver::DeclineOffer(const Nan::FunctionCallbackInfo<v8::Value>& info) {
@@ -195,26 +210,31 @@ void NodeSchedulerDriver::DeclineOffer(const Nan::FunctionCallbackInfo<v8::Value
 	mesos::OfferID offer = CreateProtoMessage<mesos::OfferID>(jsOfferId);
 
 	NodeSchedulerDriver* driver = ObjectWrap::Unwrap<NodeSchedulerDriver>(info.Holder());
+	mesos::Status status;
 
 	if (info.Length() == 2) {
 		REQUIRE_ARGUMENT_OBJECT(1, jsFilters)
 		mesos::Filters filters = CreateProtoMessage<mesos::Filters>(jsFilters);
-		driver->_schedulerDriver->declineOffer(offer, filters);
+		status = driver->_schedulerDriver->declineOffer(offer, filters);
 	} else {
-		driver->_schedulerDriver->declineOffer(offer);
+		status = driver->_schedulerDriver->declineOffer(offer);
 	}
+
+	info.GetReturnValue().Set(status);
 }
 
 void NodeSchedulerDriver::ReviveOffers(const Nan::FunctionCallbackInfo<v8::Value>& info) {
 	REQUIRE_ARGUMENTS(1)
 	NodeSchedulerDriver* driver = ObjectWrap::Unwrap<NodeSchedulerDriver>(info.Holder());
-	driver->_schedulerDriver->reviveOffers();
+	mesos::Status status = driver->_schedulerDriver->reviveOffers();
+	info.GetReturnValue().Set(status);
 }
 
 void NodeSchedulerDriver::SuppressOffers(const Nan::FunctionCallbackInfo<v8::Value>& info) {
 	REQUIRE_ARGUMENTS(1)
 	NodeSchedulerDriver* driver = ObjectWrap::Unwrap<NodeSchedulerDriver>(info.Holder());
-	driver->_schedulerDriver->suppressOffers();
+	mesos::Status status = driver->_schedulerDriver->suppressOffers();
+	info.GetReturnValue().Set(status);
 }
 
 void NodeSchedulerDriver::AcknowledgeStatusUpdate(const Nan::FunctionCallbackInfo<v8::Value>& info) {
@@ -222,10 +242,11 @@ void NodeSchedulerDriver::AcknowledgeStatusUpdate(const Nan::FunctionCallbackInf
 
 	REQUIRE_ARGUMENTS(1)
 	REQUIRE_ARGUMENT_OBJECT(0, jsStatus)
-	mesos::TaskStatus status = CreateProtoMessage<mesos::TaskStatus>(jsStatus);
+	mesos::TaskStatus taskStatus = CreateProtoMessage<mesos::TaskStatus>(jsStatus);
 
 	NodeSchedulerDriver* driver = ObjectWrap::Unwrap<NodeSchedulerDriver>(info.Holder());
-	driver->_schedulerDriver->acknowledgeStatusUpdate(status);
+	mesos::Status status = driver->_schedulerDriver->acknowledgeStatusUpdate(taskStatus);
+	info.GetReturnValue().Set(status);
 }
 
 void NodeSchedulerDriver::SendFrameworkMessage(const Nan::FunctionCallbackInfo<v8::Value>& info) {
@@ -241,7 +262,8 @@ void NodeSchedulerDriver::SendFrameworkMessage(const Nan::FunctionCallbackInfo<v
 	std::string data = ArrayBufferToString(jsData);
 
 	NodeSchedulerDriver* driver = ObjectWrap::Unwrap<NodeSchedulerDriver>(info.Holder());
-	driver->_schedulerDriver->sendFrameworkMessage(executorId, slaveId, data);
+	mesos::Status status = driver->_schedulerDriver->sendFrameworkMessage(executorId, slaveId, data);
+	info.GetReturnValue().Set(status);
 }
 
 void NodeSchedulerDriver::ReconcileTasks(const Nan::FunctionCallbackInfo<v8::Value>& info) {
@@ -252,5 +274,6 @@ void NodeSchedulerDriver::ReconcileTasks(const Nan::FunctionCallbackInfo<v8::Val
 	std::vector<mesos::TaskStatus> statuses = CreateProtoMessageVector<mesos::TaskStatus>(jsStatuses);
 
 	NodeSchedulerDriver* driver = ObjectWrap::Unwrap<NodeSchedulerDriver>(info.Holder());
-	driver->_schedulerDriver->reconcileTasks(statuses);
+	mesos::Status status = driver->_schedulerDriver->reconcileTasks(statuses);
+	info.GetReturnValue().Set(status);
 }

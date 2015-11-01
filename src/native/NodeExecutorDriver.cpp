@@ -2,6 +2,8 @@
 #include "Common.hpp"
 #include "Macros.hpp"
 
+Nan::Persistent<v8::Function> NodeExecutorDriver::_constructor;
+
 NodeExecutorDriver::NodeExecutorDriver(NodeExecutor* executor) :
 		_executor(executor), _executorDriver(new MesosExecutorDriver(_executor)) {
 }
@@ -58,31 +60,36 @@ void NodeExecutorDriver::New(const Nan::FunctionCallbackInfo<v8::Value>& info) {
 void NodeExecutorDriver::Start(const Nan::FunctionCallbackInfo<v8::Value>& info) {
 	REQUIRE_ARGUMENTS(0)
 	NodeExecutorDriver* driver = ObjectWrap::Unwrap<NodeExecutorDriver>(info.Holder());
-	driver->_executorDriver->start();
+	mesos::Status status = driver->_executorDriver->start();
+	info.GetReturnValue().Set(status);
 }
 
 void NodeExecutorDriver::Stop(const Nan::FunctionCallbackInfo<v8::Value>& info) {
 	REQUIRE_ARGUMENTS(0)
 	NodeExecutorDriver* driver = ObjectWrap::Unwrap<NodeExecutorDriver>(info.Holder());
-	driver->_executorDriver->stop();
+	mesos::Status status = driver->_executorDriver->stop();
+	info.GetReturnValue().Set(status);
 }
 
 void NodeExecutorDriver::Abort(const Nan::FunctionCallbackInfo<v8::Value>& info) {
 	REQUIRE_ARGUMENTS(0)
 	NodeExecutorDriver* driver = ObjectWrap::Unwrap<NodeExecutorDriver>(info.Holder());
-	driver->_executorDriver->abort();
+	mesos::Status status = driver->_executorDriver->abort();
+	info.GetReturnValue().Set(status);
 }
 
 void NodeExecutorDriver::Join(const Nan::FunctionCallbackInfo<v8::Value>& info) {
 	REQUIRE_ARGUMENTS(0)
 	NodeExecutorDriver* driver = ObjectWrap::Unwrap<NodeExecutorDriver>(info.Holder());
-	driver->_executorDriver->join();
+	mesos::Status status = driver->_executorDriver->join();
+	info.GetReturnValue().Set(status);
 }
 
 void NodeExecutorDriver::Run(const Nan::FunctionCallbackInfo<v8::Value>& info) {
 	REQUIRE_ARGUMENTS(0)
 	NodeExecutorDriver* driver = ObjectWrap::Unwrap<NodeExecutorDriver>(info.Holder());
-	driver->_executorDriver->run();
+	mesos::Status status = driver->_executorDriver->run();
+	info.GetReturnValue().Set(status);
 }
 
 void NodeExecutorDriver::SendStatusUpdate(const Nan::FunctionCallbackInfo<v8::Value>& info) {
@@ -93,7 +100,8 @@ void NodeExecutorDriver::SendStatusUpdate(const Nan::FunctionCallbackInfo<v8::Va
 	mesos::TaskStatus taskStatus = CreateProtoMessage<mesos::TaskStatus>(jsTaskStatus);
 
 	NodeExecutorDriver* driver = ObjectWrap::Unwrap<NodeExecutorDriver>(info.Holder());
-	driver->_executorDriver->sendStatusUpdate(taskStatus);
+	mesos::Status status = driver->_executorDriver->sendStatusUpdate(taskStatus);
+	info.GetReturnValue().Set(status);
 }
 
 void NodeExecutorDriver::SendFrameworkMessage(const Nan::FunctionCallbackInfo<v8::Value>& info) {
@@ -104,5 +112,6 @@ void NodeExecutorDriver::SendFrameworkMessage(const Nan::FunctionCallbackInfo<v8
 	std::string message = ArrayBufferToString(jsMessage);
 
 	NodeExecutorDriver* driver = ObjectWrap::Unwrap<NodeExecutorDriver>(info.Holder());
-	driver->_executorDriver->sendFrameworkMessage(message);
+	mesos::Status status = driver->_executorDriver->sendFrameworkMessage(message);
+	info.GetReturnValue().Set(status);
 }
