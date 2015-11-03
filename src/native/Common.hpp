@@ -8,15 +8,17 @@
 
 std::string ArrayBufferToString(v8::Local<v8::ArrayBuffer> arrayBuffer);
 
-v8::Local<v8::Value> CallFunction(const v8::Local<v8::Object>& object, const std::string& functionName, int argc, v8::Local<v8::Value> argv[]);
+v8::Local<v8::Value> CallFunction(const v8::Local<v8::Object>& object, const std::string& functionName, int argc,
+		v8::Local<v8::Value> argv[]);
 v8::Local<v8::Value> CallFunction(const v8::Local<v8::Object>& object, const std::string& functionName);
 
 v8::Local<v8::Object> CreateBuffer(const std::string& data);
 
-void EmitEvent(const v8::Local<v8::Object>& eventEmitter, const std::string& eventName, int argc, v8::Local<v8::Value> argv[]);
+void EmitEvent(const v8::Local<v8::Object>& eventEmitter, const std::string& eventName, int argc,
+		v8::Local<v8::Value> argv[]);
 
-v8::Local<v8::Object> CreateProtoObject(const google::protobuf::Message& message, const v8::Local<v8::Object>& protosRoot,
-		const std::string& protoClassPath);
+v8::Local<v8::Object> CreateProtoObject(const google::protobuf::Message& message,
+		const v8::Local<v8::Object>& protosRoot, const std::string& protoClassPath);
 
 template<class T>
 v8::Local<v8::Array> CreateProtoObjectArray(const std::vector<T>& messages, const v8::Local<v8::Object>& protosRoot,
@@ -41,10 +43,26 @@ T CreateProtoMessage(const v8::Local<v8::Object>& protoObject) {
 
 	assert(!protoObject.IsEmpty());
 
+	Nan::TryCatch tryCatch;
 	v8::Local<v8::Value> callResult = CallFunction(protoObject, "toArrayBuffer");
-	assert(!callResult.IsEmpty());
+	v8::Local<v8::ArrayBuffer> arrayBuffer;
 
-	v8::Local<v8::ArrayBuffer> arrayBuffer = v8::Local<v8::ArrayBuffer>::Cast(callResult);
+	if (!tryCatch.HasCaught()) {
+		assert(!callResult.IsEmpty());
+		arrayBuffer = v8::Local<v8::ArrayBuffer>::Cast(callResult);
+	} else {
+		v8::Local<v8::Value> exception = tryCatch.Exception();
+		if (exception->IsObject()) {
+			v8::Local<v8::Object> exceptionObject = v8::Local<v8::Object>::Cast(exception);
+			v8::MaybeLocal<v8::Value> encodedMaybe = Nan::Get(exceptionObject, Nan::New("encoded").ToLocalChecked());
+			if (!encodedMaybe.IsEmpty()) {
+				arrayBuffer = v8::Local<v8::ArrayBuffer>::Cast(encodedMaybe.ToLocalChecked());
+			}
+		}
+
+		tryCatch.Reset();
+	}
+
 	assert(!arrayBuffer.IsEmpty());
 
 	v8::ArrayBuffer::Contents contents = arrayBuffer->GetContents();
