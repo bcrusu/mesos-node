@@ -10,6 +10,9 @@ exports.protos = protosBuilder;
 exports.createSchedulerDriver = function (scheduler, frameworkInfo, masterAddress, implicitAcknowlegements, credential) {
     mesosUtils.validateScheduler(scheduler);
 
+    if (implicitAcknowlegements === undefined)
+        implicitAcknowlegements = true;
+
     if (credential === undefined)
         return new MesosSchedulerDriver(protosBuilder, scheduler, frameworkInfo, masterAddress, implicitAcknowlegements);
     else

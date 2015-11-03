@@ -7,6 +7,8 @@ NodeScheduler::NodeScheduler(const v8::Local<v8::Object>& jsSchedulerDriver, con
 }
 
 void NodeScheduler::registered(SchedulerDriver* driver, const FrameworkID& frameworkId, const MasterInfo& masterInfo) {
+	v8::Locker locker(_jsSchedulerDriver->GetIsolate());
+
 	Nan::HandleScope scope;
 	v8::Local<v8::Object> jsframeworkId = CreateProtoObject(frameworkId, _protosBuilder, "mesos.FrameworkID");
 	v8::Local<v8::Object> jsMasterInfo = CreateProtoObject(masterInfo, _protosBuilder, "mesos.MasterInfo");
@@ -17,6 +19,8 @@ void NodeScheduler::registered(SchedulerDriver* driver, const FrameworkID& frame
 }
 
 void NodeScheduler::reregistered(SchedulerDriver*, const MasterInfo& masterInfo) {
+	v8::Locker locker(_jsSchedulerDriver->GetIsolate());
+
 	Nan::HandleScope scope;
 	v8::Local<v8::Object> jsMasterInfo = CreateProtoObject(masterInfo, _protosBuilder, "mesos.MasterInfo");
 
@@ -26,12 +30,16 @@ void NodeScheduler::reregistered(SchedulerDriver*, const MasterInfo& masterInfo)
 }
 
 void NodeScheduler::disconnected(SchedulerDriver* driver) {
+	v8::Locker locker(_jsSchedulerDriver->GetIsolate());
+
 	int argc = 1;
 	v8::Local<v8::Value> argv[argc] = { _jsSchedulerDriver };
 	EmitEvent(_jsScheduler, "disconnected", argc, argv);
 }
 
 void NodeScheduler::resourceOffers(SchedulerDriver* driver, const std::vector<Offer>& offers) {
+	v8::Locker locker(_jsSchedulerDriver->GetIsolate());
+
 	Nan::HandleScope scope;
 	v8::Local<v8::Array> jsOffers = CreateProtoObjectArray(offers, _protosBuilder, "mesos.Offer");
 
@@ -41,6 +49,8 @@ void NodeScheduler::resourceOffers(SchedulerDriver* driver, const std::vector<Of
 }
 
 void NodeScheduler::offerRescinded(SchedulerDriver* driver, const OfferID& offerId) {
+	v8::Locker locker(_jsSchedulerDriver->GetIsolate());
+
 	Nan::HandleScope scope;
 	v8::Local<v8::Object> jsOfferId = CreateProtoObject(offerId, _protosBuilder, "mesos.OfferID");
 
@@ -50,6 +60,8 @@ void NodeScheduler::offerRescinded(SchedulerDriver* driver, const OfferID& offer
 }
 
 void NodeScheduler::statusUpdate(SchedulerDriver* driver, const TaskStatus& status) {
+	v8::Locker locker(_jsSchedulerDriver->GetIsolate());
+
 	Nan::HandleScope scope;
 	v8::Local<v8::Object> jsStatus = CreateProtoObject(status, _protosBuilder, "mesos.TaskStatus");
 
@@ -59,6 +71,8 @@ void NodeScheduler::statusUpdate(SchedulerDriver* driver, const TaskStatus& stat
 }
 
 void NodeScheduler::frameworkMessage(SchedulerDriver* driver, const ExecutorID& executorId, const SlaveID& slaveId, const string& data) {
+	v8::Locker locker(_jsSchedulerDriver->GetIsolate());
+
 	Nan::HandleScope scope;
 	v8::Local<v8::Object> jsExecutorId = CreateProtoObject(executorId, _protosBuilder, "mesos.ExecutorID");
 	v8::Local<v8::Object> jsSlaveId = CreateProtoObject(slaveId, _protosBuilder, "mesos.SlaveID");
@@ -70,6 +84,8 @@ void NodeScheduler::frameworkMessage(SchedulerDriver* driver, const ExecutorID& 
 }
 
 void NodeScheduler::slaveLost(SchedulerDriver* driver, const SlaveID& slaveId) {
+	v8::Locker locker(_jsSchedulerDriver->GetIsolate());
+
 	Nan::HandleScope scope;
 	v8::Local<v8::Object> jsSlaveId = CreateProtoObject(slaveId, _protosBuilder, "mesos.SlaveID");
 
@@ -79,6 +95,8 @@ void NodeScheduler::slaveLost(SchedulerDriver* driver, const SlaveID& slaveId) {
 }
 
 void NodeScheduler::executorLost(SchedulerDriver* driver, const ExecutorID& executorId, const SlaveID& slaveId, int status) {
+	v8::Locker locker(_jsSchedulerDriver->GetIsolate());
+
 	Nan::HandleScope scope;
 	v8::Local<v8::Object> jsSlaveId = CreateProtoObject(slaveId, _protosBuilder, "mesos.SlaveID");
 	v8::Local<v8::Int32> jsStatus = Nan::New(status);
@@ -89,6 +107,8 @@ void NodeScheduler::executorLost(SchedulerDriver* driver, const ExecutorID& exec
 }
 
 void NodeScheduler::error(SchedulerDriver* driver, const string& message) {
+	v8::Locker locker(_jsSchedulerDriver->GetIsolate());
+
 	Nan::HandleScope scope;
 	v8::MaybeLocal<v8::String> jsMessage = Nan::New(message);
 

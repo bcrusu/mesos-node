@@ -97,6 +97,8 @@ v8::Local<v8::Value> CallFunction(const v8::Local<v8::Object>& object, const std
 
 	v8::MaybeLocal<v8::Value> result = function->Call(v8::Isolate::GetCurrent()->GetCurrentContext(), object, argc, argv);
 
+	//TODO: check pending JS exception
+
 	return scope.Escape(result.ToLocalChecked());
 }
 

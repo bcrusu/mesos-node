@@ -7,6 +7,8 @@ NodeExecutor::NodeExecutor(const v8::Local<v8::Object>& jsExecutorDriver, v8::Lo
 
 void NodeExecutor::registered(ExecutorDriver* driver, const ExecutorInfo& executorInfo, const FrameworkInfo& frameworkInfo,
 		const SlaveInfo& slaveInfo) {
+	v8::Locker locker(_jsExecutorDriver->GetIsolate());
+
 	Nan::HandleScope scope;
 	v8::Local<v8::Object> jsExecutorInfo = CreateProtoObject(executorInfo, _protosBuilder, "mesos.ExecutorInfo");
 	v8::Local<v8::Object> jsFrameworkInfo = CreateProtoObject(frameworkInfo, _protosBuilder, "mesos.FrameworkInfo");
@@ -18,6 +20,8 @@ void NodeExecutor::registered(ExecutorDriver* driver, const ExecutorInfo& execut
 }
 
 void NodeExecutor::reregistered(ExecutorDriver* driver, const SlaveInfo& slaveInfo) {
+	v8::Locker locker(_jsExecutorDriver->GetIsolate());
+
 	Nan::HandleScope scope;
 	v8::Local<v8::Object> jsSlaveInfo = CreateProtoObject(slaveInfo, _protosBuilder, "mesos.SlaveInfo");
 
@@ -27,12 +31,16 @@ void NodeExecutor::reregistered(ExecutorDriver* driver, const SlaveInfo& slaveIn
 }
 
 void NodeExecutor::disconnected(ExecutorDriver* driver) {
+	v8::Locker locker(_jsExecutorDriver->GetIsolate());
+
 	int argc = 1;
 	v8::Local<v8::Value> argv[argc] = { _jsExecutorDriver };
 	EmitEvent(_jsExecutor, "disconnected", argc, argv);
 }
 
 void NodeExecutor::launchTask(ExecutorDriver* driver, const TaskInfo& task) {
+	v8::Locker locker(_jsExecutorDriver->GetIsolate());
+
 	Nan::HandleScope scope;
 	v8::Local<v8::Object> jsTaskInfo = CreateProtoObject(task, _protosBuilder, "mesos.TaskInfo");
 
@@ -42,6 +50,8 @@ void NodeExecutor::launchTask(ExecutorDriver* driver, const TaskInfo& task) {
 }
 
 void NodeExecutor::killTask(ExecutorDriver* driver, const TaskID& taskId) {
+	v8::Locker locker(_jsExecutorDriver->GetIsolate());
+
 	Nan::HandleScope scope;
 	v8::Local<v8::Object> jsTaskId = CreateProtoObject(taskId, _protosBuilder, "mesos.TaskID");
 
@@ -52,6 +62,8 @@ void NodeExecutor::killTask(ExecutorDriver* driver, const TaskID& taskId) {
 }
 
 void NodeExecutor::frameworkMessage(ExecutorDriver* driver, const string& data) {
+	v8::Locker locker(_jsExecutorDriver->GetIsolate());
+
 	Nan::HandleScope scope;
 	v8::Local<v8::Object> jsDataBuffer = CreateBuffer(data);
 
@@ -61,12 +73,16 @@ void NodeExecutor::frameworkMessage(ExecutorDriver* driver, const string& data) 
 }
 
 void NodeExecutor::shutdown(ExecutorDriver* driver) {
+	v8::Locker locker(_jsExecutorDriver->GetIsolate());
+
 	int argc = 1;
 	v8::Local<v8::Value> argv[argc] = { _jsExecutorDriver };
 	EmitEvent(_jsExecutor, "shutdown", argc, argv);
 }
 
 void NodeExecutor::error(ExecutorDriver* driver, const string& message) {
+	v8::Locker locker(_jsExecutorDriver->GetIsolate());
+
 	Nan::HandleScope scope;
 	v8::MaybeLocal<v8::String> jsMessage = Nan::New(message);
 
