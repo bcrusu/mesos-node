@@ -25,6 +25,8 @@ private:
 	static void SendStatusUpdate(const Nan::FunctionCallbackInfo<v8::Value>& info);
 	static void SendFrameworkMessage(const Nan::FunctionCallbackInfo<v8::Value>& info);
 
+	static v8::Local<v8::Value> MesosStatusToJs(mesos::Status status);
+
 	static Nan::Persistent<v8::Function> _constructor;
 	NodeExecutor* _executor;
 	MesosExecutorDriver* _executorDriver;

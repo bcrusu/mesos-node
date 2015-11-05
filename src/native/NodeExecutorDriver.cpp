@@ -1,6 +1,7 @@
 #include "NodeExecutorDriver.hpp"
 #include "Common.hpp"
 #include "Macros.hpp"
+#include "MesosAsyncWorker.hpp"
 
 Nan::Persistent<v8::Function> NodeExecutorDriver::_constructor;
 
@@ -11,6 +12,10 @@ NodeExecutorDriver::NodeExecutorDriver(NodeExecutor* executor) :
 NodeExecutorDriver::~NodeExecutorDriver() {
 	delete _executorDriver;
 	delete _executor;
+}
+
+v8::Local<v8::Value> NodeExecutorDriver::MesosStatusToJs(mesos::Status status){
+	return Nan::New(status);  //TODO: convert to proper Mesos proto object (i.e. not Int32)
 }
 
 void NodeExecutorDriver::Init(v8::Local<v8::Object> exports) {
@@ -60,58 +65,70 @@ void NodeExecutorDriver::New(const Nan::FunctionCallbackInfo<v8::Value>& info) {
 void NodeExecutorDriver::Start(const Nan::FunctionCallbackInfo<v8::Value>& info) {
 	REQUIRE_ARGUMENTS(0)
 	NodeExecutorDriver* driver = ObjectWrap::Unwrap<NodeExecutorDriver>(info.Holder());
-	mesos::Status status = driver->_executorDriver->start();
-	info.GetReturnValue().Set(status);
+
+	auto worker = new MesosAsyncWorker<mesos::Status>([driver] {return driver->_executorDriver->start();}, MesosStatusToJs);
+	Nan::AsyncQueueWorker(worker);
+	info.GetReturnValue().Set(worker->GetPromise());
 }
 
 void NodeExecutorDriver::Stop(const Nan::FunctionCallbackInfo<v8::Value>& info) {
 	REQUIRE_ARGUMENTS(0)
 	NodeExecutorDriver* driver = ObjectWrap::Unwrap<NodeExecutorDriver>(info.Holder());
-	mesos::Status status = driver->_executorDriver->stop();
-	info.GetReturnValue().Set(status);
+
+	auto worker = new MesosAsyncWorker<mesos::Status>([driver] {return driver->_executorDriver->stop();}, MesosStatusToJs);
+	Nan::AsyncQueueWorker(worker);
+	info.GetReturnValue().Set(worker->GetPromise());
 }
 
 void NodeExecutorDriver::Abort(const Nan::FunctionCallbackInfo<v8::Value>& info) {
 	REQUIRE_ARGUMENTS(0)
 	NodeExecutorDriver* driver = ObjectWrap::Unwrap<NodeExecutorDriver>(info.Holder());
-	mesos::Status status = driver->_executorDriver->abort();
-	info.GetReturnValue().Set(status);
+
+	auto worker = new MesosAsyncWorker<mesos::Status>([driver] {return driver->_executorDriver->abort();}, MesosStatusToJs);
+	Nan::AsyncQueueWorker(worker);
+	info.GetReturnValue().Set(worker->GetPromise());
 }
 
 void NodeExecutorDriver::Join(const Nan::FunctionCallbackInfo<v8::Value>& info) {
 	REQUIRE_ARGUMENTS(0)
 	NodeExecutorDriver* driver = ObjectWrap::Unwrap<NodeExecutorDriver>(info.Holder());
-	mesos::Status status = driver->_executorDriver->join();
-	info.GetReturnValue().Set(status);
+
+	auto worker = new MesosAsyncWorker<mesos::Status>([driver] {return driver->_executorDriver->join();}, MesosStatusToJs);
+	Nan::AsyncQueueWorker(worker);
+	info.GetReturnValue().Set(worker->GetPromise());
 }
 
 void NodeExecutorDriver::Run(const Nan::FunctionCallbackInfo<v8::Value>& info) {
 	REQUIRE_ARGUMENTS(0)
 	NodeExecutorDriver* driver = ObjectWrap::Unwrap<NodeExecutorDriver>(info.Holder());
-	mesos::Status status = driver->_executorDriver->run();
-	info.GetReturnValue().Set(status);
+
+	auto worker = new MesosAsyncWorker<mesos::Status>([driver] {return driver->_executorDriver->run();}, MesosStatusToJs);
+	Nan::AsyncQueueWorker(worker);
+	info.GetReturnValue().Set(worker->GetPromise());
 }
 
 void NodeExecutorDriver::SendStatusUpdate(const Nan::FunctionCallbackInfo<v8::Value>& info) {
 	Nan::HandleScope scope;
+	NodeExecutorDriver* driver = ObjectWrap::Unwrap<NodeExecutorDriver>(info.Holder());
 
 	REQUIRE_ARGUMENTS(1)
 	REQUIRE_ARGUMENT_OBJECT(0, jsTaskStatus)
 	mesos::TaskStatus taskStatus = CreateProtoMessage<mesos::TaskStatus>(jsTaskStatus);
 
-	NodeExecutorDriver* driver = ObjectWrap::Unwrap<NodeExecutorDriver>(info.Holder());
-	mesos::Status status = driver->_executorDriver->sendStatusUpdate(taskStatus);
-	info.GetReturnValue().Set(status);
+	auto worker = new MesosAsyncWorker<mesos::Status>([driver, taskStatus] {return driver->_executorDriver->sendStatusUpdate(taskStatus);}, MesosStatusToJs);
+	Nan::AsyncQueueWorker(worker);
+	info.GetReturnValue().Set(worker->GetPromise());
 }
 
 void NodeExecutorDriver::SendFrameworkMessage(const Nan::FunctionCallbackInfo<v8::Value>& info) {
 	Nan::HandleScope scope;
+	NodeExecutorDriver* driver = ObjectWrap::Unwrap<NodeExecutorDriver>(info.Holder());
 
 	REQUIRE_ARGUMENTS(1)
 	REQUIRE_ARGUMENT_ARRAYBUFFER(0, jsMessage)
 	std::string message = ArrayBufferToString(jsMessage);
 
-	NodeExecutorDriver* driver = ObjectWrap::Unwrap<NodeExecutorDriver>(info.Holder());
-	mesos::Status status = driver->_executorDriver->sendFrameworkMessage(message);
-	info.GetReturnValue().Set(status);
+	auto worker = new MesosAsyncWorker<mesos::Status>([driver, message = std::move(message)] {return driver->_executorDriver->sendFrameworkMessage(message);}, MesosStatusToJs);
+	Nan::AsyncQueueWorker(worker);
+	info.GetReturnValue().Set(worker->GetPromise());
 }

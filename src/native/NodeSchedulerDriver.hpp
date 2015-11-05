@@ -34,6 +34,8 @@ private:
 	static void SendFrameworkMessage(const Nan::FunctionCallbackInfo<v8::Value>& info);
 	static void ReconcileTasks(const Nan::FunctionCallbackInfo<v8::Value>& info);
 
+	static v8::Local<v8::Value> MesosStatusToJs(mesos::Status status);
+
 	static Nan::Persistent<v8::Function> _constructor;
 	NodeScheduler* _scheduler;
 	MesosSchedulerDriver* _schedulerDriver;
