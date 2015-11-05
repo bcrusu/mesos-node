@@ -1,6 +1,7 @@
 #include "NodeSchedulerDriver.hpp"
 #include "Common.hpp"
 #include "Macros.hpp"
+#include "MesosAsyncWorker.hpp"
 
 Nan::Persistent<v8::Function> NodeSchedulerDriver::_constructor;
 
@@ -25,7 +26,6 @@ void NodeSchedulerDriver::Init(v8::Local<v8::Object> exports) {
 	// constructor template
 	v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
 	tpl->SetClassName(Nan::New("MesosSchedulerDriver").ToLocalChecked());
-	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
 	// prototype
 	Nan::SetPrototypeMethod(tpl, "start", Start);
@@ -128,8 +128,11 @@ void NodeSchedulerDriver::Join(const Nan::FunctionCallbackInfo<v8::Value>& info)
 void NodeSchedulerDriver::Run(const Nan::FunctionCallbackInfo<v8::Value>& info) {
 	REQUIRE_ARGUMENTS(0)
 	NodeSchedulerDriver* driver = ObjectWrap::Unwrap<NodeSchedulerDriver>(info.Holder());
-	mesos::Status status = driver->_schedulerDriver->run();
-	info.GetReturnValue().Set(status);
+
+	auto worker = new MesosAsyncWorker([driver] {return driver->_schedulerDriver->run();});
+	Nan::AsyncQueueWorker(worker);
+
+	info.GetReturnValue().Set(worker->GetPromise());
 }
 
 void NodeSchedulerDriver::RequestResources(const Nan::FunctionCallbackInfo<v8::Value>& info) {
