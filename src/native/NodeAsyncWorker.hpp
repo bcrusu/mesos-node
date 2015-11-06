@@ -75,6 +75,8 @@ private:
 			HandleOKCallback();
 		else
 			HandleErrorCallback();
+
+		KickNextTick();
 	}
 
 	void SetErrorMessage(const char *msg) {

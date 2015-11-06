@@ -6,6 +6,8 @@
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 #include <nan.h>
 
+void KickNextTick();
+
 std::string ArrayBufferToString(v8::Local<v8::ArrayBuffer> arrayBuffer);
 
 v8::Local<v8::Value> CallFunction(const v8::Local<v8::Object>& object, const std::string& functionName, int argc,

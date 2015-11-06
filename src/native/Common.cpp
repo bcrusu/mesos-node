@@ -1,6 +1,11 @@
 #include <sstream>
 #include "Common.hpp"
 
+void KickNextTick(){
+	Nan::HandleScope scope;
+	Nan::Callback(Nan::New<v8::Function>([](const Nan::FunctionCallbackInfo<v8::Value>& info){}, Nan::Null())).Call(0, nullptr);
+}
+
 std::string ArrayBufferToString(v8::Local<v8::ArrayBuffer> arrayBuffer) {
 	v8::ArrayBuffer::Contents contents = arrayBuffer->GetContents();
 	int size = contents.ByteLength();
@@ -42,6 +47,7 @@ v8::Local<v8::Object> GetObjectForPath(const v8::Local<v8::Object>& root, const 
 	return scope.Escape(currentValue);
 }
 
+//TODO: verify
 void BufferFreeCallback(char* data, void* hint) {
 	if (hint) {
 		delete[] data;
