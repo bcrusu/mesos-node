@@ -1,7 +1,7 @@
-#include "NodeSchedulerDriver.hpp"
 #include "Common.hpp"
 #include "Macros.hpp"
-#include "MesosAsyncWorker.hpp"
+#include "NodeSchedulerDriver.hpp"
+#include "NodeAsyncWorker.hpp"
 
 Nan::Persistent<v8::Function> NodeSchedulerDriver::_constructor;
 
@@ -32,6 +32,7 @@ void NodeSchedulerDriver::Init(v8::Local<v8::Object> exports) {
 	// constructor template
 	v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
 	tpl->SetClassName(Nan::New("MesosSchedulerDriver").ToLocalChecked());
+	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
 	// prototype
 	Nan::SetPrototypeMethod(tpl, "start", Start);
@@ -100,8 +101,8 @@ void NodeSchedulerDriver::Start(const Nan::FunctionCallbackInfo<v8::Value>& info
 	REQUIRE_ARGUMENTS(0)
 	NodeSchedulerDriver* driver = ObjectWrap::Unwrap<NodeSchedulerDriver>(info.Holder());
 
-	auto worker = new MesosAsyncWorker<mesos::Status>([driver] {return driver->_schedulerDriver->start();}, MesosStatusToJs);
-	Nan::AsyncQueueWorker(worker);
+	auto worker = new NodeAsyncWorker<mesos::Status>([driver] {return driver->_schedulerDriver->start();}, MesosStatusToJs);
+	worker->Run();
 	info.GetReturnValue().Set(worker->GetPromise());
 }
 
@@ -116,8 +117,8 @@ void NodeSchedulerDriver::Stop(const Nan::FunctionCallbackInfo<v8::Value>& info)
 		failover = jsFailover->BooleanValue();
 	}
 
-	auto worker = new MesosAsyncWorker<mesos::Status>([driver, failover] {return driver->_schedulerDriver->stop(failover);}, MesosStatusToJs);
-	Nan::AsyncQueueWorker(worker);
+	auto worker = new NodeAsyncWorker<mesos::Status>([driver, failover] {return driver->_schedulerDriver->stop(failover);}, MesosStatusToJs);
+	worker->Run();
 	info.GetReturnValue().Set(worker->GetPromise());
 }
 
@@ -125,8 +126,8 @@ void NodeSchedulerDriver::Abort(const Nan::FunctionCallbackInfo<v8::Value>& info
 	REQUIRE_ARGUMENTS(0)
 	NodeSchedulerDriver* driver = ObjectWrap::Unwrap<NodeSchedulerDriver>(info.Holder());
 
-	auto worker = new MesosAsyncWorker<mesos::Status>([driver] {return driver->_schedulerDriver->abort();}, MesosStatusToJs);
-	Nan::AsyncQueueWorker(worker);
+	auto worker = new NodeAsyncWorker<mesos::Status>([driver] {return driver->_schedulerDriver->abort();}, MesosStatusToJs);
+	worker->Run();
 	info.GetReturnValue().Set(worker->GetPromise());
 }
 
@@ -134,8 +135,8 @@ void NodeSchedulerDriver::Join(const Nan::FunctionCallbackInfo<v8::Value>& info)
 	REQUIRE_ARGUMENTS(0)
 	NodeSchedulerDriver* driver = ObjectWrap::Unwrap<NodeSchedulerDriver>(info.Holder());
 
-	auto worker = new MesosAsyncWorker<mesos::Status>([driver] {return driver->_schedulerDriver->join();}, MesosStatusToJs);
-	Nan::AsyncQueueWorker(worker);
+	auto worker = new NodeAsyncWorker<mesos::Status>([driver] {return driver->_schedulerDriver->join();}, MesosStatusToJs);
+	worker->Run();
 	info.GetReturnValue().Set(worker->GetPromise());
 }
 
@@ -143,8 +144,8 @@ void NodeSchedulerDriver::Run(const Nan::FunctionCallbackInfo<v8::Value>& info) 
 	REQUIRE_ARGUMENTS(0)
 	NodeSchedulerDriver* driver = ObjectWrap::Unwrap<NodeSchedulerDriver>(info.Holder());
 
-	auto worker = new MesosAsyncWorker<mesos::Status>([driver] {return driver->_schedulerDriver->run();}, MesosStatusToJs);
-	Nan::AsyncQueueWorker(worker);
+	auto worker = new NodeAsyncWorker<mesos::Status>([driver] { return driver->_schedulerDriver->run(); }, MesosStatusToJs);
+	worker->Run();
 	info.GetReturnValue().Set(worker->GetPromise());
 }
 
@@ -156,8 +157,8 @@ void NodeSchedulerDriver::RequestResources(const Nan::FunctionCallbackInfo<v8::V
 	REQUIRE_ARGUMENT_ARRAY(0, jsRequests)
 	std::vector<mesos::Request> requests = CreateProtoMessageVector<mesos::Request>(jsRequests);
 
-	auto worker = new MesosAsyncWorker<mesos::Status>([driver, requests = std::move(requests)] {return driver->_schedulerDriver->requestResources(requests);}, MesosStatusToJs);
-	Nan::AsyncQueueWorker (worker);
+	auto worker = new NodeAsyncWorker<mesos::Status>([driver, requests = std::move(requests)] {return driver->_schedulerDriver->requestResources(requests);}, MesosStatusToJs);
+	worker->Run();
 	info.GetReturnValue().Set(worker->GetPromise());
 }
 
@@ -180,8 +181,8 @@ void NodeSchedulerDriver::LaunchTasks(const Nan::FunctionCallbackInfo<v8::Value>
 		work = [driver, offerIds = std::move(offerIds), tasks = std::move(tasks)] {return driver->_schedulerDriver->launchTasks(offerIds, tasks);};
 	}
 
-	auto worker = new MesosAsyncWorker<mesos::Status>(std::move(work), MesosStatusToJs);
-	Nan::AsyncQueueWorker (worker);
+	auto worker = new NodeAsyncWorker<mesos::Status>(std::move(work), MesosStatusToJs);
+	worker->Run();
 	info.GetReturnValue().Set(worker->GetPromise());
 }
 
@@ -193,8 +194,8 @@ void NodeSchedulerDriver::KillTask(const Nan::FunctionCallbackInfo<v8::Value>& i
 	REQUIRE_ARGUMENT_OBJECT(0, jsTaskId)
 	mesos::TaskID taskId = CreateProtoMessage<mesos::TaskID>(jsTaskId);
 
-	auto worker = new MesosAsyncWorker<mesos::Status>([driver, taskId] {return driver->_schedulerDriver->killTask(taskId);}, MesosStatusToJs);
-	Nan::AsyncQueueWorker(worker);
+	auto worker = new NodeAsyncWorker<mesos::Status>([driver, taskId] {return driver->_schedulerDriver->killTask(taskId);}, MesosStatusToJs);
+	worker->Run();
 	info.GetReturnValue().Set(worker->GetPromise());
 }
 
@@ -217,8 +218,8 @@ void NodeSchedulerDriver::AcceptOffers(const Nan::FunctionCallbackInfo<v8::Value
 		work = [driver, offerIds = std::move(offerIds), operations = std::move(operations)] {return driver->_schedulerDriver->acceptOffers(offerIds, operations);};
 	}
 
-	auto worker = new MesosAsyncWorker<mesos::Status>(std::move(work), MesosStatusToJs);
-	Nan::AsyncQueueWorker (worker);
+	auto worker = new NodeAsyncWorker<mesos::Status>(std::move(work), MesosStatusToJs);
+	worker->Run();
 	info.GetReturnValue().Set(worker->GetPromise());
 }
 
@@ -239,8 +240,8 @@ void NodeSchedulerDriver::DeclineOffer(const Nan::FunctionCallbackInfo<v8::Value
 		work = [driver, offer] {return driver->_schedulerDriver->declineOffer(offer);};
 	}
 
-	auto worker = new MesosAsyncWorker<mesos::Status>(std::move(work), MesosStatusToJs);
-	Nan::AsyncQueueWorker (worker);
+	auto worker = new NodeAsyncWorker<mesos::Status>(std::move(work), MesosStatusToJs);
+	worker->Run();
 	info.GetReturnValue().Set(worker->GetPromise());
 }
 
@@ -248,8 +249,8 @@ void NodeSchedulerDriver::ReviveOffers(const Nan::FunctionCallbackInfo<v8::Value
 	REQUIRE_ARGUMENTS(0)
 	NodeSchedulerDriver* driver = ObjectWrap::Unwrap<NodeSchedulerDriver>(info.Holder());
 
-	auto worker = new MesosAsyncWorker<mesos::Status>([driver] {return driver->_schedulerDriver->reviveOffers();}, MesosStatusToJs);
-	Nan::AsyncQueueWorker(worker);
+	auto worker = new NodeAsyncWorker<mesos::Status>([driver] {return driver->_schedulerDriver->reviveOffers();}, MesosStatusToJs);
+	worker->Run();
 	info.GetReturnValue().Set(worker->GetPromise());
 }
 
@@ -257,8 +258,8 @@ void NodeSchedulerDriver::SuppressOffers(const Nan::FunctionCallbackInfo<v8::Val
 	REQUIRE_ARGUMENTS(0)
 	NodeSchedulerDriver* driver = ObjectWrap::Unwrap<NodeSchedulerDriver>(info.Holder());
 
-	auto worker = new MesosAsyncWorker<mesos::Status>([driver] {return driver->_schedulerDriver->suppressOffers();}, MesosStatusToJs);
-	Nan::AsyncQueueWorker(worker);
+	auto worker = new NodeAsyncWorker<mesos::Status>([driver] {return driver->_schedulerDriver->suppressOffers();}, MesosStatusToJs);
+	worker->Run();
 	info.GetReturnValue().Set(worker->GetPromise());
 }
 
@@ -270,8 +271,8 @@ void NodeSchedulerDriver::AcknowledgeStatusUpdate(const Nan::FunctionCallbackInf
 	REQUIRE_ARGUMENT_OBJECT(0, jsStatus)
 	mesos::TaskStatus taskStatus = CreateProtoMessage<mesos::TaskStatus>(jsStatus);
 
-	auto worker = new MesosAsyncWorker<mesos::Status>([driver, taskStatus] {return driver->_schedulerDriver->acknowledgeStatusUpdate(taskStatus);}, MesosStatusToJs);
-	Nan::AsyncQueueWorker(worker);
+	auto worker = new NodeAsyncWorker<mesos::Status>([driver, taskStatus] {return driver->_schedulerDriver->acknowledgeStatusUpdate(taskStatus);}, MesosStatusToJs);
+	worker->Run();
 	info.GetReturnValue().Set(worker->GetPromise());
 }
 
@@ -288,8 +289,8 @@ void NodeSchedulerDriver::SendFrameworkMessage(const Nan::FunctionCallbackInfo<v
 	mesos::SlaveID slaveId = CreateProtoMessage<mesos::SlaveID>(jsSlaveId);
 	std::string data = ArrayBufferToString(jsData);
 
-	auto worker = new MesosAsyncWorker<mesos::Status>([driver, executorId, slaveId, data = std::move(data)] {return driver->_schedulerDriver->sendFrameworkMessage(executorId, slaveId, data);}, MesosStatusToJs);
-	Nan::AsyncQueueWorker(worker);
+	auto worker = new NodeAsyncWorker<mesos::Status>([driver, executorId, slaveId, data = std::move(data)] {return driver->_schedulerDriver->sendFrameworkMessage(executorId, slaveId, data);}, MesosStatusToJs);
+	worker->Run();
 	info.GetReturnValue().Set(worker->GetPromise());
 }
 
@@ -301,7 +302,7 @@ void NodeSchedulerDriver::ReconcileTasks(const Nan::FunctionCallbackInfo<v8::Val
 	REQUIRE_ARGUMENT_ARRAY(0, jsStatuses)
 	std::vector<mesos::TaskStatus> statuses = CreateProtoMessageVector<mesos::TaskStatus>(jsStatuses);
 
-	auto worker = new MesosAsyncWorker<mesos::Status>([driver, statuses = std::move(statuses)] {return driver->_schedulerDriver->reconcileTasks(statuses);}, MesosStatusToJs);
-	Nan::AsyncQueueWorker(worker);
+	auto worker = new NodeAsyncWorker<mesos::Status>([driver, statuses = std::move(statuses)] {return driver->_schedulerDriver->reconcileTasks(statuses);}, MesosStatusToJs);
+	worker->Run();
 	info.GetReturnValue().Set(worker->GetPromise());
 }

@@ -1,92 +1,119 @@
 #include "Common.hpp"
 #include "NodeExecutor.hpp"
+#include "NodeSyncWorker.hpp"
 
-NodeExecutor::NodeExecutor(const v8::Local<v8::Object>& jsExecutorDriver, v8::Local<v8::Object> jsExecutor, v8::Local<v8::Object> protosBuilder) :
-		_jsExecutorDriver(jsExecutorDriver), _jsExecutor(jsExecutor), _protosBuilder(protosBuilder) {
+NodeExecutor::NodeExecutor(const v8::Local<v8::Object>& jsExecutorDriver, const v8::Local<v8::Object>& jsExecutor,
+		const v8::Local<v8::Object>& protosBuilder) :
+	_jsExecutorDriver(jsExecutorDriver), _jsExecutor(jsExecutor), _protosBuilder(protosBuilder) {
+}
+
+NodeExecutor::~NodeExecutor(){
+	_jsExecutorDriver.Reset();
+	_jsExecutor.Reset();
+	_protosBuilder.Reset();
 }
 
 void NodeExecutor::registered(ExecutorDriver* driver, const ExecutorInfo& executorInfo, const FrameworkInfo& frameworkInfo,
 		const SlaveInfo& slaveInfo) {
-	v8::Locker locker(_jsExecutorDriver->GetIsolate());
+	auto worker = new NodeSyncWorker([executor = this, executorInfo, frameworkInfo, slaveInfo] {
+		Nan::HandleScope scope;
+		v8::Local<v8::Object> protosBuilder = Nan::New(executor->_protosBuilder);
+		v8::Local<v8::Object> jsExecutorInfo = CreateProtoObject(executorInfo, protosBuilder, "mesos.ExecutorInfo");
+		v8::Local<v8::Object> jsFrameworkInfo = CreateProtoObject(frameworkInfo, protosBuilder, "mesos.FrameworkInfo");
+		v8::Local<v8::Object> jsSlaveInfo = CreateProtoObject(slaveInfo, protosBuilder, "mesos.SlaveInfo");
 
-	Nan::HandleScope scope;
-	v8::Local<v8::Object> jsExecutorInfo = CreateProtoObject(executorInfo, _protosBuilder, "mesos.ExecutorInfo");
-	v8::Local<v8::Object> jsFrameworkInfo = CreateProtoObject(frameworkInfo, _protosBuilder, "mesos.FrameworkInfo");
-	v8::Local<v8::Object> jsSlaveInfo = CreateProtoObject(slaveInfo, _protosBuilder, "mesos.SlaveInfo");
+		int argc = 4;
+		v8::Local<v8::Value> argv[argc] = { Nan::New(executor->_jsExecutorDriver), jsExecutorInfo, jsFrameworkInfo, jsSlaveInfo };
+		EmitEvent(executor->_jsExecutor, "registered", argc, argv);
+	});
 
-	int argc = 4;
-	v8::Local<v8::Value> argv[argc] = { _jsExecutorDriver, jsExecutorInfo, jsFrameworkInfo, jsSlaveInfo };
-	EmitEvent(_jsExecutor, "registered", argc, argv);
+	worker->Run();
 }
 
 void NodeExecutor::reregistered(ExecutorDriver* driver, const SlaveInfo& slaveInfo) {
-	v8::Locker locker(_jsExecutorDriver->GetIsolate());
+	auto worker = new NodeSyncWorker([executor = this, slaveInfo] {
+		Nan::HandleScope scope;
+		v8::Local<v8::Object> protosBuilder = Nan::New(executor->_protosBuilder);
+		v8::Local<v8::Object> jsSlaveInfo = CreateProtoObject(slaveInfo, protosBuilder, "mesos.SlaveInfo");
 
-	Nan::HandleScope scope;
-	v8::Local<v8::Object> jsSlaveInfo = CreateProtoObject(slaveInfo, _protosBuilder, "mesos.SlaveInfo");
+		int argc = 2;
+		v8::Local<v8::Value> argv[argc] = { Nan::New(executor->_jsExecutorDriver), jsSlaveInfo };
+		EmitEvent(executor->_jsExecutor, "reregistered", argc, argv);
+	});
 
-	int argc = 2;
-	v8::Local<v8::Value> argv[argc] = { _jsExecutorDriver, jsSlaveInfo };
-	EmitEvent(_jsExecutor, "reregistered", argc, argv);
+	worker->Run();
 }
 
 void NodeExecutor::disconnected(ExecutorDriver* driver) {
-	v8::Locker locker(_jsExecutorDriver->GetIsolate());
+	auto worker = new NodeSyncWorker([executor = this] {
+		int argc = 1;
+		v8::Local<v8::Value> argv[argc] = { Nan::New(executor->_jsExecutorDriver) };
+		EmitEvent(executor->_jsExecutor, "disconnected", argc, argv);
+	});
 
-	int argc = 1;
-	v8::Local<v8::Value> argv[argc] = { _jsExecutorDriver };
-	EmitEvent(_jsExecutor, "disconnected", argc, argv);
+	worker->Run();
 }
 
 void NodeExecutor::launchTask(ExecutorDriver* driver, const TaskInfo& task) {
-	v8::Locker locker(_jsExecutorDriver->GetIsolate());
+	auto worker = new NodeSyncWorker([executor = this, task] {
+		Nan::HandleScope scope;
+		v8::Local<v8::Object> protosBuilder = Nan::New(executor->_protosBuilder);
+		v8::Local<v8::Object> jsTaskInfo = CreateProtoObject(task, protosBuilder, "mesos.TaskInfo");
 
-	Nan::HandleScope scope;
-	v8::Local<v8::Object> jsTaskInfo = CreateProtoObject(task, _protosBuilder, "mesos.TaskInfo");
+		int argc = 2;
+		v8::Local<v8::Value> argv[argc] = { Nan::New(executor->_jsExecutorDriver), jsTaskInfo };
+		EmitEvent(executor->_jsExecutor, "launchTask", argc, argv);
+	});
 
-	int argc = 2;
-	v8::Local<v8::Value> argv[argc] = { _jsExecutorDriver, jsTaskInfo };
-	EmitEvent(_jsExecutor, "launchTask", argc, argv);
+	worker->Run();
 }
 
 void NodeExecutor::killTask(ExecutorDriver* driver, const TaskID& taskId) {
-	v8::Locker locker(_jsExecutorDriver->GetIsolate());
+	auto worker = new NodeSyncWorker([executor = this, taskId] {
+		Nan::HandleScope scope;
+		v8::Local<v8::Object> protosBuilder = Nan::New(executor->_protosBuilder);
+		v8::Local<v8::Object> jsTaskId = CreateProtoObject(taskId, protosBuilder, "mesos.TaskID");
 
-	Nan::HandleScope scope;
-	v8::Local<v8::Object> jsTaskId = CreateProtoObject(taskId, _protosBuilder, "mesos.TaskID");
+		int argc = 2;
+		v8::Local<v8::Value> argv[argc] = { Nan::New(executor->_jsExecutorDriver), jsTaskId };
+		EmitEvent(executor->_jsExecutor, "killTask", argc, argv);
+	});
 
-	int argc = 2;
-	v8::Local<v8::Value> argv[argc] = { _jsExecutorDriver, jsTaskId };
-	EmitEvent(_jsExecutor, "killTask", argc, argv);
-
+	worker->Run();
 }
 
 void NodeExecutor::frameworkMessage(ExecutorDriver* driver, const string& data) {
-	v8::Locker locker(_jsExecutorDriver->GetIsolate());
+	auto worker = new NodeSyncWorker([executor = this, data = std::move(data)] {
+		Nan::HandleScope scope;
+		v8::Local<v8::Object> jsDataBuffer = CreateBuffer(data);
 
-	Nan::HandleScope scope;
-	v8::Local<v8::Object> jsDataBuffer = CreateBuffer(data);
+		int argc = 2;
+		v8::Local<v8::Value> argv[argc] = { Nan::New(executor->_jsExecutorDriver), jsDataBuffer };
+		EmitEvent(executor->_jsExecutor, "frameworkMessage", argc, argv);
+	});
 
-	int argc = 2;
-	v8::Local<v8::Value> argv[argc] = { _jsExecutorDriver, jsDataBuffer };
-	EmitEvent(_jsExecutor, "frameworkMessage", argc, argv);
+	worker->Run();
 }
 
 void NodeExecutor::shutdown(ExecutorDriver* driver) {
-	v8::Locker locker(_jsExecutorDriver->GetIsolate());
+	auto worker = new NodeSyncWorker([executor = this] {
+		int argc = 1;
+		v8::Local<v8::Value> argv[argc] = { Nan::New(executor->_jsExecutorDriver) };
+		EmitEvent(executor->_jsExecutor, "shutdown", argc, argv);
+	});
 
-	int argc = 1;
-	v8::Local<v8::Value> argv[argc] = { _jsExecutorDriver };
-	EmitEvent(_jsExecutor, "shutdown", argc, argv);
+	worker->Run();
 }
 
 void NodeExecutor::error(ExecutorDriver* driver, const string& message) {
-	v8::Locker locker(_jsExecutorDriver->GetIsolate());
+	auto worker = new NodeSyncWorker([executor = this, message = std::move(message)] {
+		Nan::HandleScope scope;
+		v8::MaybeLocal<v8::String> jsMessage = Nan::New(message);
 
-	Nan::HandleScope scope;
-	v8::MaybeLocal<v8::String> jsMessage = Nan::New(message);
+		int argc = 2;
+		v8::Local<v8::Value> argv[argc] = { Nan::New(executor->_jsExecutorDriver), jsMessage.ToLocalChecked() };
+		EmitEvent(executor->_jsExecutor, "error", argc, argv);
+	});
 
-	int argc = 2;
-	v8::Local<v8::Value> argv[argc] = { _jsExecutorDriver, jsMessage.ToLocalChecked() };
-	EmitEvent(_jsExecutor, "error", argc, argv);
+	worker->Run();
 }

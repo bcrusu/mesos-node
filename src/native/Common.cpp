@@ -1,10 +1,10 @@
 #include <sstream>
 #include "Common.hpp"
 
-std::string ArrayBufferToString(v8::Local<v8::ArrayBuffer> arrayBuffer){
+std::string ArrayBufferToString(v8::Local<v8::ArrayBuffer> arrayBuffer) {
 	v8::ArrayBuffer::Contents contents = arrayBuffer->GetContents();
 	int size = contents.ByteLength();
-	char* data = (char*)contents.Data();
+	char* data = (char*) contents.Data();
 
 	std::string result(data, size);
 	return result;
@@ -82,24 +82,38 @@ v8::Local<v8::Object> CreateProtoObject(const google::protobuf::Message& message
 	return scope.Escape(result);
 }
 
-void EmitEvent(const v8::Local<v8::Object>& eventEmitter, const std::string& eventName, int argc, v8::Local<v8::Value> argv[]) {
-	CallFunction(eventEmitter, "emit", argc, argv);
+void EmitEvent(const Nan::Persistent<v8::Object>& eventEmitter, const std::string& eventName, int argc, v8::Local<v8::Value> argv[]) {
+	Nan::HandleScope scope;
+
+	int emitArgc = argc + 1;
+	v8::Local<v8::Value> emitArgv[emitArgc];
+
+	emitArgv[0] = Nan::New(eventName).ToLocalChecked();
+	for (int i = 0; i < argc; i++) {
+		emitArgv[i + 1] = argv[i];
+	}
+
+	CallFunction(Nan::New(eventEmitter), "emit", emitArgc, emitArgv);
 }
 
 v8::Local<v8::Value> CallFunction(const v8::Local<v8::Object>& object, const std::string& functionName, int argc, v8::Local<v8::Value> argv[]) {
 	Nan::EscapableHandleScope scope;
+	v8::Isolate* isolate = v8::Isolate::GetCurrent();
 
-	v8::MaybeLocal<v8::Value> maybe = Nan::Get(object, Nan::New(functionName).ToLocalChecked());
-	assert(!maybe.IsEmpty());
+	v8::MaybeLocal<v8::Value> maybeFunction = Nan::Get(object, Nan::New(functionName).ToLocalChecked());
+	assert(!maybeFunction.IsEmpty());
 
-	v8::Local<v8::Function> function = v8::Local<v8::Function>::Cast(maybe.ToLocalChecked());
+	v8::Local<v8::Function> function = v8::Local<v8::Function>::Cast(maybeFunction.ToLocalChecked());
 	assert(!function.IsEmpty());
 
-	v8::MaybeLocal<v8::Value> result = function->Call(v8::Isolate::GetCurrent()->GetCurrentContext(), object, argc, argv);
+	v8::MaybeLocal<v8::Value> maybeResult = function->Call(isolate->GetCurrentContext(), object, argc, argv);
 
-	//TODO: check pending JS exception
-
-	return scope.Escape(result.ToLocalChecked());
+	if (!maybeResult.IsEmpty()) {
+		return scope.Escape(maybeResult.ToLocalChecked());
+	} else {
+		// dummy result for void functions
+		return scope.Escape(v8::Null(isolate));
+	}
 }
 
 v8::Local<v8::Value> CallFunction(const v8::Local<v8::Object>& object, const std::string& functionName) {

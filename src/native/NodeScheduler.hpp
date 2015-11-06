@@ -10,7 +10,9 @@ using std::vector;
 
 class NodeScheduler: public Scheduler {
 public:
-	explicit NodeScheduler(const v8::Local<v8::Object>& jsSchedulerDriver, const v8::Local<v8::Object>& jsScheduler, const v8::Local<v8::Object>& protosBuilder);
+	explicit NodeScheduler(const v8::Local<v8::Object>& jsSchedulerDriver, const v8::Local<v8::Object>& jsScheduler,
+			const v8::Local<v8::Object>& protosBuilder);
+	~NodeScheduler();
 
 	virtual void registered(SchedulerDriver* driver, const FrameworkID& frameworkId, const MasterInfo& masterInfo);
 	virtual void reregistered(SchedulerDriver*, const MasterInfo& masterInfo);
@@ -24,9 +26,9 @@ public:
 	virtual void error(SchedulerDriver* driver, const string& message);
 
 private:
-	v8::Local<v8::Object> _jsSchedulerDriver;
-	v8::Local<v8::Object> _jsScheduler;
-	v8::Local<v8::Object> _protosBuilder;
+	Nan::Persistent<v8::Object> _jsSchedulerDriver;
+	Nan::Persistent<v8::Object> _jsScheduler;
+	Nan::Persistent<v8::Object> _protosBuilder;
 };
 
 #endif /* NODESCHEDULER_HPP_ */
