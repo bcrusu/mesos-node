@@ -49,7 +49,6 @@ v8::Local<v8::Object> GetObjectForPath(const v8::Local<v8::Object>& root, const 
 	return scope.Escape(currentValue);
 }
 
-//TODO: verify
 void BufferFreeCallback(char* data, void* hint) {
 	if (hint) {
 		delete[] data;

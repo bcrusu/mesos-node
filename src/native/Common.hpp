@@ -46,9 +46,10 @@ T CreateProtoMessage(const v8::Local<v8::Object>& protoObject) {
 
 	assert(!protoObject.IsEmpty());
 
-	Nan::TryCatch tryCatch; //TODO: test!
+	Nan::TryCatch tryCatch;
 	v8::Local<v8::Value> callResult = CallFunction(protoObject, "toArrayBuffer");
 	v8::Local<v8::ArrayBuffer> arrayBuffer;
+	bool hasMissingRequiredFields = false;
 
 	if (!tryCatch.HasCaught()) {
 		assert(!callResult.IsEmpty());
@@ -60,6 +61,7 @@ T CreateProtoMessage(const v8::Local<v8::Object>& protoObject) {
 			v8::MaybeLocal<v8::Value> encodedMaybe = Nan::Get(exceptionObject, Nan::New("encoded").ToLocalChecked());
 			if (!encodedMaybe.IsEmpty()) {
 				arrayBuffer = v8::Local<v8::ArrayBuffer>::Cast(encodedMaybe.ToLocalChecked());
+				hasMissingRequiredFields = true;
 			}
 		}
 
@@ -74,7 +76,15 @@ T CreateProtoMessage(const v8::Local<v8::Object>& protoObject) {
 
 	google::protobuf::io::ArrayInputStream stream(data, size);
 	T result;
-	bool parsed = result.ParseFromZeroCopyStream(&stream);
+
+	bool parsed;
+	if (!hasMissingRequiredFields){
+		parsed = result.ParseFromZeroCopyStream(&stream);
+	} else{
+		//TODO: for missing required fields the following call fails (investigate protobufjs binary output)
+		parsed = result.ParsePartialFromZeroCopyStream(&stream);
+	}
+
 	assert(parsed);
 	return result;
 }

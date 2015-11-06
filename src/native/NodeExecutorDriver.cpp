@@ -17,7 +17,7 @@ NodeExecutorDriver::~NodeExecutorDriver() {
 }
 
 v8::Local<v8::Value> NodeExecutorDriver::MesosStatusToJs(mesos::Status status){
-	return Nan::New(status);  //TODO: convert to proper Mesos proto object (i.e. not Int32)
+	return Nan::New(status);
 }
 
 void NodeExecutorDriver::Init(v8::Local<v8::Object> exports) {

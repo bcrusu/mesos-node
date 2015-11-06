@@ -25,7 +25,7 @@ NodeSchedulerDriver::~NodeSchedulerDriver() {
 }
 
 v8::Local<v8::Value> NodeSchedulerDriver::MesosStatusToJs(mesos::Status status){
-	return Nan::New(status);  //TODO: convert to proper Mesos proto object (i.e. not Int32)
+	return Nan::New(status);
 }
 
 void NodeSchedulerDriver::Init(v8::Local<v8::Object> exports) {
