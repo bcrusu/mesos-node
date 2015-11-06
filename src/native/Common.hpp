@@ -6,22 +6,22 @@
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 #include <nan.h>
 
+namespace mesosNode {
+
 void KickNextTick();
 
 std::string ArrayBufferToString(v8::Local<v8::ArrayBuffer> arrayBuffer);
 
-v8::Local<v8::Value> CallFunction(const v8::Local<v8::Object>& object, const std::string& functionName, int argc,
-		v8::Local<v8::Value> argv[]);
+v8::Local<v8::Value> CallFunction(const v8::Local<v8::Object>& object, const std::string& functionName, int argc, v8::Local<v8::Value> argv[]);
 
 v8::Local<v8::Value> CallFunction(const v8::Local<v8::Object>& object, const std::string& functionName);
 
 v8::Local<v8::Object> CreateBuffer(const std::string& data);
 
-void EmitEvent(const Nan::Persistent<v8::Object>& eventEmitter, const std::string& eventName, int argc,
-		v8::Local<v8::Value> argv[]);
+void EmitEvent(const Nan::Persistent<v8::Object>& eventEmitter, const std::string& eventName, int argc, v8::Local<v8::Value> argv[]);
 
-v8::Local<v8::Object> CreateProtoObject(const google::protobuf::Message& message,
-		const v8::Local<v8::Object>& protosRoot, const std::string& protoClassPath);
+v8::Local<v8::Object> CreateProtoObject(const google::protobuf::Message& message, const v8::Local<v8::Object>& protosRoot,
+		const std::string& protoClassPath);
 
 template<class T>
 v8::Local<v8::Array> CreateProtoObjectArray(const std::vector<T>& messages, const v8::Local<v8::Object>& protosRoot,
@@ -94,6 +94,8 @@ std::vector<T> CreateProtoMessageVector(const v8::Local<v8::Array>& protoObjectA
 	}
 
 	return result;
+}
+
 }
 
 #endif /* COMMON_HPP_ */

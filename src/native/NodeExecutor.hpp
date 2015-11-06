@@ -5,8 +5,9 @@
 #include <mesos/executor.hpp>
 #include <nan.h>
 
-using std::string;
 using namespace mesos;
+
+namespace mesosNode {
 
 class NodeExecutor: public Executor {
 public:
@@ -19,14 +20,16 @@ public:
 	virtual void disconnected(ExecutorDriver* driver);
 	virtual void launchTask(ExecutorDriver* driver, const TaskInfo& task);
 	virtual void killTask(ExecutorDriver* driver, const TaskID& taskId);
-	virtual void frameworkMessage(ExecutorDriver* driver, const string& data);
+	virtual void frameworkMessage(ExecutorDriver* driver, const std::string& data);
 	virtual void shutdown(ExecutorDriver* driver);
-	virtual void error(ExecutorDriver* driver, const string& message);
+	virtual void error(ExecutorDriver* driver, const std::string& message);
 
 private:
 	Nan::Persistent<v8::Object> _jsExecutorDriver;
 	Nan::Persistent<v8::Object> _jsExecutor;
 	Nan::Persistent<v8::Object> _protosBuilder;
 };
+
+}
 
 #endif /* NODEEXECUTOR_HPP_ */

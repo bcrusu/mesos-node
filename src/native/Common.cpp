@@ -1,6 +1,8 @@
 #include <sstream>
 #include "Common.hpp"
 
+namespace mesosNode {
+
 void KickNextTick(){
 	Nan::HandleScope scope;
 	Nan::Callback(Nan::New<v8::Function>([](const Nan::FunctionCallbackInfo<v8::Value>& info){}, Nan::Null())).Call(0, nullptr);
@@ -125,4 +127,6 @@ v8::Local<v8::Value> CallFunction(const v8::Local<v8::Object>& object, const std
 v8::Local<v8::Value> CallFunction(const v8::Local<v8::Object>& object, const std::string& functionName) {
 	v8::Local<v8::Value> argv[0] = { };
 	return CallFunction(object, functionName, 0, argv);
+}
+
 }

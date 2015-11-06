@@ -1,6 +1,8 @@
 #ifndef MACROS_HPP_
 #define MACROS_HPP_
 
+namespace mesosNode {
+
 #define REQUIRE_ARGUMENTS(n)                                                   \
     if (info.Length() != (n)) {                                                \
         return Nan::ThrowTypeError("Expected " #n "arguments");                \
@@ -46,5 +48,7 @@
         return Nan::ThrowTypeError("Argument " #i " must be a string.");       \
     }                                                                          \
     Nan::Utf8String var(info[i]);
+
+}
 
 #endif /* MACROS_HPP_ */

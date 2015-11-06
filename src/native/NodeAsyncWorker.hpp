@@ -4,6 +4,8 @@
 #include <functional>
 #include <nan.h>
 
+namespace mesosNode {
+
 template<typename TResult>
 class NodeAsyncWorker {
 public:
@@ -110,5 +112,7 @@ private:
 
 	NAN_DISALLOW_ASSIGN_COPY_MOVE(NodeAsyncWorker)
 };
+
+}
 
 #endif /* NODEASYNCWORKER_HPP_ */

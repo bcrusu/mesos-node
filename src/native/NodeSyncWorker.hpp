@@ -4,6 +4,8 @@
 #include <functional>
 #include <nan.h>
 
+namespace mesosNode {
+
 class NodeSyncWorker {
 public:
 	NodeSyncWorker(std::function<void()> work) :
@@ -32,5 +34,7 @@ private:
 
 	NAN_DISALLOW_ASSIGN_COPY_MOVE(NodeSyncWorker)
 };
+
+}
 
 #endif /* NODEASYNCWORKER_HPP_ */

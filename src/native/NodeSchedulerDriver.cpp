@@ -3,6 +3,8 @@
 #include "NodeSchedulerDriver.hpp"
 #include "NodeAsyncWorker.hpp"
 
+namespace mesosNode {
+
 Nan::Persistent<v8::Function> NodeSchedulerDriver::_constructor;
 
 NodeSchedulerDriver::NodeSchedulerDriver(NodeScheduler* scheduler, const FrameworkInfo& framework,
@@ -306,3 +308,6 @@ void NodeSchedulerDriver::ReconcileTasks(const Nan::FunctionCallbackInfo<v8::Val
 	worker->Run();
 	info.GetReturnValue().Set(worker->GetPromise());
 }
+
+}
+

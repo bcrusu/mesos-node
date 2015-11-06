@@ -6,7 +6,8 @@
 #include "NodeExecutor.hpp"
 
 using namespace mesos;
-using namespace v8;
+
+namespace mesosNode {
 
 class NodeExecutorDriver: public Nan::ObjectWrap {
 public:
@@ -31,5 +32,7 @@ private:
 	NodeExecutor* _executor;
 	MesosExecutorDriver* _executorDriver;
 };
+
+}
 
 #endif /* NODEEXECUTORDRIVER_HPP_ */

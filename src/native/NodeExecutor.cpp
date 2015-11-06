@@ -2,6 +2,8 @@
 #include "NodeExecutor.hpp"
 #include "NodeSyncWorker.hpp"
 
+namespace mesosNode {
+
 NodeExecutor::NodeExecutor(const v8::Local<v8::Object>& jsExecutorDriver, const v8::Local<v8::Object>& jsExecutor,
 		const v8::Local<v8::Object>& protosBuilder) :
 	_jsExecutorDriver(jsExecutorDriver), _jsExecutor(jsExecutor), _protosBuilder(protosBuilder) {
@@ -82,7 +84,7 @@ void NodeExecutor::killTask(ExecutorDriver* driver, const TaskID& taskId) {
 	worker->Run();
 }
 
-void NodeExecutor::frameworkMessage(ExecutorDriver* driver, const string& data) {
+void NodeExecutor::frameworkMessage(ExecutorDriver* driver, const std::string& data) {
 	auto worker = new NodeSyncWorker([executor = this, data = std::move(data)] {
 		Nan::HandleScope scope;
 		v8::Local<v8::Object> jsDataBuffer = CreateBuffer(data);
@@ -105,7 +107,7 @@ void NodeExecutor::shutdown(ExecutorDriver* driver) {
 	worker->Run();
 }
 
-void NodeExecutor::error(ExecutorDriver* driver, const string& message) {
+void NodeExecutor::error(ExecutorDriver* driver, const std::string& message) {
 	auto worker = new NodeSyncWorker([executor = this, message = std::move(message)] {
 		Nan::HandleScope scope;
 		v8::MaybeLocal<v8::String> jsMessage = Nan::New(message);
@@ -116,4 +118,6 @@ void NodeExecutor::error(ExecutorDriver* driver, const string& message) {
 	});
 
 	worker->Run();
+}
+
 }

@@ -3,6 +3,8 @@
 #include "Macros.hpp"
 #include "NodeAsyncWorker.hpp"
 
+namespace mesosNode {
+
 Nan::Persistent<v8::Function> NodeExecutorDriver::_constructor;
 
 NodeExecutorDriver::NodeExecutorDriver(NodeExecutor* executor) :
@@ -131,4 +133,6 @@ void NodeExecutorDriver::SendFrameworkMessage(const Nan::FunctionCallbackInfo<v8
 	auto worker = new NodeAsyncWorker<mesos::Status>([driver, message = std::move(message)] {return driver->_executorDriver->sendFrameworkMessage(message);}, MesosStatusToJs);
 	worker->Run();
 	info.GetReturnValue().Set(worker->GetPromise());
+}
+
 }

@@ -2,6 +2,8 @@
 #include "NodeScheduler.hpp"
 #include "NodeSyncWorker.hpp"
 
+namespace mesosNode {
+
 NodeScheduler::NodeScheduler(const v8::Local<v8::Object>& jsSchedulerDriver, const v8::Local<v8::Object>& jsScheduler,
 		const v8::Local<v8::Object>& protosBuilder) :
 		_jsSchedulerDriver(jsSchedulerDriver), _jsScheduler(jsScheduler), _protosBuilder(protosBuilder) {
@@ -95,7 +97,7 @@ void NodeScheduler::statusUpdate(SchedulerDriver* driver, const TaskStatus& stat
 	worker->Run();
 }
 
-void NodeScheduler::frameworkMessage(SchedulerDriver* driver, const ExecutorID& executorId, const SlaveID& slaveId, const string& data) {
+void NodeScheduler::frameworkMessage(SchedulerDriver* driver, const ExecutorID& executorId, const SlaveID& slaveId, const std::string& data) {
 	auto worker = new NodeSyncWorker([scheduler = this, executorId, slaveId, data = std::move(data)] {
 		Nan::HandleScope scope;
 		v8::Local<v8::Object> protosBuilder = Nan::New(scheduler->_protosBuilder);
@@ -140,7 +142,7 @@ void NodeScheduler::executorLost(SchedulerDriver* driver, const ExecutorID& exec
 	worker->Run();
 }
 
-void NodeScheduler::error(SchedulerDriver* driver, const string& message) {
+void NodeScheduler::error(SchedulerDriver* driver, const std::string& message) {
 	auto worker = new NodeSyncWorker([scheduler = this, message = std::move(message)] {
 		Nan::HandleScope scope;
 		v8::MaybeLocal<v8::String> jsMessage = Nan::New(message);
@@ -151,4 +153,6 @@ void NodeScheduler::error(SchedulerDriver* driver, const string& message) {
 	});
 
 	worker->Run();
+}
+
 }

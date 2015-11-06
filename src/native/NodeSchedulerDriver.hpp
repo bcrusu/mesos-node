@@ -7,6 +7,8 @@
 
 using namespace mesos;
 
+namespace mesosNode {
+
 class NodeSchedulerDriver: public Nan::ObjectWrap {
 public:
 	static void Init(v8::Local<v8::Object> exports);
@@ -40,5 +42,7 @@ private:
 	NodeScheduler* _scheduler;
 	MesosSchedulerDriver* _schedulerDriver;
 };
+
+}
 
 #endif /* NODESCHEDULERDRIVER_HPP_ */
