@@ -127,8 +127,8 @@ void NodeExecutorDriver::SendFrameworkMessage(const Nan::FunctionCallbackInfo<v8
 	NodeExecutorDriver* driver = ObjectWrap::Unwrap<NodeExecutorDriver>(info.Holder());
 
 	REQUIRE_ARGUMENTS(1)
-	REQUIRE_ARGUMENT_ARRAYBUFFER(0, jsMessage)
-	std::string message = ArrayBufferToString(jsMessage);
+	REQUIRE_ARGUMENT_STRING(0, jsMessage)
+	std::string message(*jsMessage, jsMessage.length());
 
 	auto worker = new NodeAsyncWorker<mesos::Status>([driver, message = std::move(message)] {return driver->_executorDriver->sendFrameworkMessage(message);}, MesosStatusToJs);
 	worker->Run();

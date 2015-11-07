@@ -31,12 +31,6 @@ namespace mesosNode {
     }                                                                          \
     v8::Local<v8::Array> var = v8::Local<v8::Array>::Cast(info[i]);
 
-#define REQUIRE_ARGUMENT_ARRAYBUFFER(i, var)                                   \
-    if (info.Length() <= (i) || !info[i]->IsArrayBuffer()) {                   \
-        return Nan::ThrowTypeError("Argument " #i " must be an array buffer.");\
-    }                                                                          \
-    v8::Local<v8::ArrayBuffer> var = v8::Local<v8::ArrayBuffer>::Cast(info[i]);
-
 #define REQUIRE_ARGUMENT_BOOLEAN(i, var)                                       \
     if (info.Length() <= (i) || !info[i]->IsBoolean()) {                       \
         return Nan::ThrowTypeError("Argument " #i " must be a boolean.");      \

@@ -285,11 +285,11 @@ void NodeSchedulerDriver::SendFrameworkMessage(const Nan::FunctionCallbackInfo<v
 	REQUIRE_ARGUMENTS(3)
 	REQUIRE_ARGUMENT_OBJECT(0, jsExecutorId)
 	REQUIRE_ARGUMENT_OBJECT(1, jsSlaveId)
-	REQUIRE_ARGUMENT_ARRAYBUFFER(2, jsData)
+	REQUIRE_ARGUMENT_STRING(2, jsData)
 
 	mesos::ExecutorID executorId = CreateProtoMessage<mesos::ExecutorID>(jsExecutorId);
 	mesos::SlaveID slaveId = CreateProtoMessage<mesos::SlaveID>(jsSlaveId);
-	std::string data = ArrayBufferToString(jsData);
+	std::string data(*jsData, jsData.length());
 
 	auto worker = new NodeAsyncWorker<mesos::Status>([driver, executorId, slaveId, data = std::move(data)] {return driver->_schedulerDriver->sendFrameworkMessage(executorId, slaveId, data);}, MesosStatusToJs);
 	worker->Run();
