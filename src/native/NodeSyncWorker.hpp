@@ -10,12 +10,12 @@ class NodeSyncWorker {
 public:
 	NodeSyncWorker(std::function<void()> work) :
 			_work(work) {
-		_request.data = this;
+		_handle.data = this;
 	}
 
 	void Run() {
-		uv_async_init(uv_default_loop(), &_request, AsyncExecute);
-		uv_async_send(&_request);
+		uv_async_init(uv_default_loop(), &_handle, AsyncExecute);
+		uv_async_send(&_handle);
 	}
 
 private:
@@ -23,14 +23,20 @@ private:
 		_work();
 	}
 
-	static void AsyncExecute(uv_async_t* request) {
-		auto worker = static_cast<NodeSyncWorker*>(request->data);
-		worker->Execute();
+	static void CloseHandleCallback(uv_handle_t* handle){
+		auto worker = static_cast<NodeSyncWorker*>(handle->data);
 		delete worker;
 	}
 
+	static void AsyncExecute(uv_async_t* handle) {
+		auto worker = static_cast<NodeSyncWorker*>(handle->data);
+		worker->Execute();
+
+		uv_close((uv_handle_t*)handle, CloseHandleCallback);
+	}
+
 	std::function<void()> _work;
-	uv_async_t _request;
+	uv_async_t _handle;
 
 	NAN_DISALLOW_ASSIGN_COPY_MOVE(NodeSyncWorker)
 };
