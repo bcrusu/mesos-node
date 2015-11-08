@@ -48,6 +48,7 @@ void NodeExecutor::reregistered(ExecutorDriver* driver, const SlaveInfo& slaveIn
 
 void NodeExecutor::disconnected(ExecutorDriver* driver) {
 	auto worker = new NodeSyncWorker([executor = this] {
+		Nan::HandleScope scope;
 		int argc = 1;
 		v8::Local<v8::Value> argv[argc] = { Nan::New(executor->_jsExecutorDriver) };
 		EmitEvent(executor->_jsExecutor, "disconnected", argc, argv);
@@ -99,6 +100,7 @@ void NodeExecutor::frameworkMessage(ExecutorDriver* driver, const std::string& d
 
 void NodeExecutor::shutdown(ExecutorDriver* driver) {
 	auto worker = new NodeSyncWorker([executor = this] {
+		Nan::HandleScope scope;
 		int argc = 1;
 		v8::Local<v8::Value> argv[argc] = { Nan::New(executor->_jsExecutorDriver) };
 		EmitEvent(executor->_jsExecutor, "shutdown", argc, argv);
