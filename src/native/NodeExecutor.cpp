@@ -87,10 +87,10 @@ void NodeExecutor::killTask(ExecutorDriver* driver, const TaskID& taskId) {
 void NodeExecutor::frameworkMessage(ExecutorDriver* driver, const std::string& data) {
 	auto worker = new NodeSyncWorker([executor = this, data = std::move(data)] {
 		Nan::HandleScope scope;
-		v8::Local<v8::Object> jsDataBuffer = CreateBuffer(data);
+		v8::MaybeLocal<v8::String> jsData = Nan::New(data);
 
 		int argc = 2;
-		v8::Local<v8::Value> argv[argc] = { Nan::New(executor->_jsExecutorDriver), jsDataBuffer };
+		v8::Local<v8::Value> argv[argc] = { Nan::New(executor->_jsExecutorDriver), jsData.ToLocalChecked() };
 		EmitEvent(executor->_jsExecutor, "frameworkMessage", argc, argv);
 	});
 

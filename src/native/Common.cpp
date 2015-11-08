@@ -8,15 +8,6 @@ void KickNextTick(){
 	Nan::Callback(Nan::New<v8::Function>([](const Nan::FunctionCallbackInfo<v8::Value>& info){}, Nan::Null())).Call(0, nullptr);
 }
 
-std::string ArrayBufferToString(v8::Local<v8::ArrayBuffer> arrayBuffer) {
-	v8::ArrayBuffer::Contents contents = arrayBuffer->GetContents();
-	int size = contents.ByteLength();
-	char* data = (char*) contents.Data();
-
-	std::string result(data, size);
-	return result;
-}
-
 std::vector<std::string> SplitString(const std::string &s, char delim) {
 	std::vector<std::string> result;
 	std::stringstream ss(s);
@@ -50,21 +41,7 @@ v8::Local<v8::Object> GetObjectForPath(const v8::Local<v8::Object>& root, const 
 }
 
 void BufferFreeCallback(char* data, void* hint) {
-	if (hint) {
-		delete[] data;
-	}
-}
-
-v8::Local<v8::Object> CreateBuffer(const std::string& str) {
-	Nan::EscapableHandleScope scope;
-
-	int size = str.size();
-	char* data = (char*) str.c_str();
-
-	v8::MaybeLocal<v8::Object> buffer = Nan::NewBuffer(data, size, BufferFreeCallback, NULL);
-	assert(!buffer.IsEmpty());
-
-	return scope.Escape(buffer.ToLocalChecked());
+	delete[] data;
 }
 
 v8::Local<v8::Object> CreateProtoObject(const google::protobuf::Message& message, const v8::Local<v8::Object>& protosRoot,
@@ -77,7 +54,7 @@ v8::Local<v8::Object> CreateProtoObject(const google::protobuf::Message& message
 	char* data = new char[size];
 	message.SerializeToArray(data, size);
 
-	v8::MaybeLocal<v8::Object> buffer = Nan::NewBuffer(data, size, BufferFreeCallback, data);
+	v8::MaybeLocal<v8::Object> buffer = Nan::NewBuffer(data, size, BufferFreeCallback, NULL);
 	assert(!buffer.IsEmpty());
 
 	v8::Local<v8::Value> argv[1] = { buffer.ToLocalChecked() };

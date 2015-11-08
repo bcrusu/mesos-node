@@ -10,13 +10,9 @@ namespace mesosNode {
 
 void KickNextTick();
 
-std::string ArrayBufferToString(v8::Local<v8::ArrayBuffer> arrayBuffer);
-
 v8::Local<v8::Value> CallFunction(const v8::Local<v8::Object>& object, const std::string& functionName, int argc, v8::Local<v8::Value> argv[]);
 
 v8::Local<v8::Value> CallFunction(const v8::Local<v8::Object>& object, const std::string& functionName);
-
-v8::Local<v8::Object> CreateBuffer(const std::string& data);
 
 void EmitEvent(const Nan::Persistent<v8::Object>& eventEmitter, const std::string& eventName, int argc, v8::Local<v8::Value> argv[]);
 

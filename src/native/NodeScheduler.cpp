@@ -103,10 +103,10 @@ void NodeScheduler::frameworkMessage(SchedulerDriver* driver, const ExecutorID& 
 		v8::Local<v8::Object> protosBuilder = Nan::New(scheduler->_protosBuilder);
 		v8::Local<v8::Object> jsExecutorId = CreateProtoObject(executorId, protosBuilder, "mesos.ExecutorID");
 		v8::Local<v8::Object> jsSlaveId = CreateProtoObject(slaveId, protosBuilder, "mesos.SlaveID");
-		v8::Local<v8::Object> jsDataBuffer = CreateBuffer(data);
+		v8::MaybeLocal<v8::String> jsData = Nan::New(data);
 
 		int argc = 4;
-		v8::Local<v8::Value> argv[argc] = { Nan::New(scheduler->_jsSchedulerDriver), jsExecutorId, jsSlaveId, jsDataBuffer };
+		v8::Local<v8::Value> argv[argc] = { Nan::New(scheduler->_jsSchedulerDriver), jsExecutorId, jsSlaveId, jsData.ToLocalChecked() };
 		EmitEvent(scheduler->_jsScheduler, "frameworkMessage", argc, argv);
 	});
 
