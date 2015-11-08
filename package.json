@@ -1,5 +1,5 @@
 {
-  "name": "mesosApi",
+  "name": "mesos-api",
   "version": "0.0.1-alpha.1",
   "description": "Apache Mesos API",
   "main": "index.js",
