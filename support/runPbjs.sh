@@ -2,7 +2,7 @@
 
 SCRIPTDIR=$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)
 MESOS_INCLUDE_DIR=~/work/github/mesos/include
-OUTPUT_DIR=$SCRIPTDIR/../generated
+OUTPUT_DIR=$SCRIPTDIR/../src/generated
 
 if [ -d $OUTPUT_DIR ]; then
   rm -r $OUTPUT_DIR

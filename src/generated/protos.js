@@ -2426,16 +2426,28 @@ module.exports = require("protobufjs").newBuilder({})['import']({
             "name": "NetworkInfo",
             "fields": [
                 {
+                    "rule": "repeated",
+                    "type": "IPAddress",
+                    "name": "ip_addresses",
+                    "id": 5
+                },
+                {
                     "rule": "optional",
                     "type": "Protocol",
                     "name": "protocol",
-                    "id": 1
+                    "id": 1,
+                    "options": {
+                        "deprecated": true
+                    }
                 },
                 {
                     "rule": "optional",
                     "type": "string",
                     "name": "ip_address",
-                    "id": 2
+                    "id": 2,
+                    "options": {
+                        "deprecated": true
+                    }
                 },
                 {
                     "rule": "repeated",
@@ -2448,6 +2460,25 @@ module.exports = require("protobufjs").newBuilder({})['import']({
                     "type": "Labels",
                     "name": "labels",
                     "id": 4
+                }
+            ],
+            "messages": [
+                {
+                    "name": "IPAddress",
+                    "fields": [
+                        {
+                            "rule": "optional",
+                            "type": "Protocol",
+                            "name": "protocol",
+                            "id": 1
+                        },
+                        {
+                            "rule": "optional",
+                            "type": "string",
+                            "name": "ip_address",
+                            "id": 2
+                        }
+                    ]
                 }
             ],
             "enums": [
@@ -2685,6 +2716,12 @@ module.exports = require("protobufjs").newBuilder({})['import']({
                     "type": "string",
                     "name": "protocol",
                     "id": 3
+                },
+                {
+                    "rule": "optional",
+                    "type": "DiscoveryInfo.Visibility",
+                    "name": "visibility",
+                    "id": 4
                 }
             ]
         },
