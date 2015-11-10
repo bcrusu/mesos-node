@@ -1,6 +1,6 @@
-var mesosUtils = require('./mesosUtils.js');
+var mesosUtils = require('./mesosUtils');
 var nativeApi = require('bindings')('mesosApi.node');
-var protosBuilder = require('./generated/mesos.js');
+var protosBuilder = require('./generated/protos');
 
 var MesosSchedulerDriver = nativeApi.MesosSchedulerDriver;
 var MesosExecutorDriver = nativeApi.MesosExecutorDriver;
