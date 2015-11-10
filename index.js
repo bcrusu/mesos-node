@@ -1,5 +1,2 @@
-function createApi() {
-    return require('./src/mesosApi');
-}
-
-module.exports = createApi();
+const mesosApi = require('./src/mesosApi');;
+module.exports = mesosApi;
